@@ -23,9 +23,8 @@
 %                                                                             %
 %=============================================================================%
 function [theta,k,dk,L,nevalG1,nevalF,iter,Fvalue,Fgradnorm] = G1spline( PNTS, varargin )
-  global G1SPLINE_PNTS G1SPLINE_TOL G1SPLINE_NBUILD_CLOTHOID G1SPLINE_NBUILD_CLOTHOID ;
+  global G1SPLINE_PNTS G1SPLINE_NBUILD_CLOTHOID G1SPLINE_NBUILD_CLOTHOID ;
   G1SPLINE_PNTS            = PNTS ;
-  G1SPLINE_TOL             = 1e-10 ;
   G1SPLINE_NBUILD_CLOTHOID = 0 ;
   %
   % Compute guess angles
@@ -49,7 +48,7 @@ function [theta,k,dk,L,nevalG1,nevalF,iter,Fvalue,Fgradnorm] = G1spline( PNTS, v
   for j=1:N-1
     xL = PNTS(j,1)   ; yL = PNTS(j,2)   ; tL = theta(j) ;
     xR = PNTS(j+1,1) ; yR = PNTS(j+1,2) ; tR = theta(j+1) ;
-    [ k(j), dk(j), L(j) ] = buildClothoid( xL, yL, tL, xR, yR, tR, G1SPLINE_TOL ) ;
+    [ k(j), dk(j), L(j) ] = buildClothoid( xL, yL, tL, xR, yR, tR ) ;
   end
   nevalG1   = G1SPLINE_NBUILD_CLOTHOID ;
   nevalF    = output.funcCount ;  
@@ -61,7 +60,7 @@ end
 %
 %
 function RES = target( THETA )
-  global G1SPLINE_PNTS G1SPLINE_TOL G1SPLINE_NBUILD_CLOTHOID G1SPLINE_NBUILD_CLOTHOID ;
+  global G1SPLINE_PNTS G1SPLINE_NBUILD_CLOTHOID G1SPLINE_NBUILD_CLOTHOID ;
   N   = length(THETA) ;
   k   = zeros(N-1,1) ;
   dk  = zeros(N-1,1) ;
@@ -69,7 +68,7 @@ function RES = target( THETA )
   for j=1:N-1
     xL = G1SPLINE_PNTS(j,1)   ; yL = G1SPLINE_PNTS(j,2)   ; tL = THETA(j) ;
     xR = G1SPLINE_PNTS(j+1,1) ; yR = G1SPLINE_PNTS(j+1,2) ; tR = THETA(j+1) ;
-    [ k(j), dk(j), L(j), iter ] = buildClothoid( xL, yL, tL, xR, yR, tR, G1SPLINE_TOL ) ;
+    [ k(j), dk(j), L(j), iter ] = buildClothoid( xL, yL, tL, xR, yR, tR ) ;
   end
   G1SPLINE_NBUILD_CLOTHOID = G1SPLINE_NBUILD_CLOTHOID + N-1 ;
   kL  = k+dk.*L ;

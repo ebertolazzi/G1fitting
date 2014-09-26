@@ -214,10 +214,10 @@ The call to the function \texttt{buildClothoid} computes the three parameters ne
 %%%
 \begin{lstlisting}[breaklines, backgroundcolor=\color{gray!10},basicstyle=\small\ttfamily]
 % compute clothoid parameters
-[k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1, tol ) ;
+[k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ;
 \end{lstlisting}
 %%%
-The input parameter are respectively: $x,y$ component of the starting point, the initial angle, $x,y$ component of the final point, the final angle and the tolerance required in the computation.
+The input parameter are respectively: $x,y$ component of the starting point, the initial angle, $x,y$ component of the final point, the final angle.
 To use in practice the computed curve, it is useful to have a sampling of the curve in terms of $x,y$ components, this is obtained by the function \texttt{pointsOnClothoid} where \texttt{npts} is the number of sampling points.
  %%%
 \begin{lstlisting}[breaklines, backgroundcolor=\color{gray!10},basicstyle=\small\ttfamily]

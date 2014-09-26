@@ -12,7 +12,7 @@ addpath('../G1fitting');
 addpath('../meekAndWalton');
 close all ;
 
-tol     = 1E-14 ;
+%tol     = 1E-14 ;
 maxiter = 1000 ;
 
 % test 1
@@ -106,7 +106,7 @@ for kk=1:6
   
   fprintf('Meek & Walton,      iter %2d error %10g %10g\n', iter, norm(e1,1), norm(e2,1) ) ; 
   
-  [k,dk,Lsol,iter] = buildClothoid( P1(1), P1(2), a1, P2(1), P2(2), a2, tol ) ;
+  [k,dk,Lsol,iter] = buildClothoid( P1(1), P1(2), a1, P2(1), P2(2), a2 ) ;
   XY               = pointsOnClothoid( P1(1), P1(2), a1, k, dk, Lsol, npts ) ;
   plot( XY(1,:), XY(2,:), '-b', 'LineWidth', 2 ) ;
 

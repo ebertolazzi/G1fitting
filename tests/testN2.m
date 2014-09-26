@@ -66,7 +66,6 @@ tests(9).a1 = 0 ;
 tests(9).P2 = [1;1] ;
 tests(9).a2 = pi ;
 
-TOL  = 1e-12 ;
 NPTS = 400 ;
 LVEC = 0.5 ;
 
@@ -86,7 +85,7 @@ for kk=1:9
   set(h,'XTick',[],'YTick',[]);
   hold off ;
   
-  [k,dk,Lsol,iter] = buildClothoid( P1(1), P1(2), a1, P2(1), P2(2), a2, TOL ) ;
+  [k,dk,Lsol,iter] = buildClothoid( P1(1), P1(2), a1, P2(1), P2(2), a2 ) ;
   XY               = pointsOnClothoid( P1(1), P1(2), a1, k, dk, Lsol, NPTS ) ;
   plot( XY(1,:), XY(2,:), '-b', 'LineWidth', 2 ) ;
   axis ([xmin,xmax,ymin,ymax]) ;

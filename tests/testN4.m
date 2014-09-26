@@ -1,23 +1,4 @@
 %=============================================================================%
-%  buildClothoid:  Compute parameters of the G1 Hermite clothoid fitting      %
-%                                                                             %
-%  USAGE: [k,dk,L,iter] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ;   %
-%                                                                             %
-%  On input:                                                                  %
-%                                                                             %
-%       x0, y0  = coodinate of initial point                                  %
-%       theta0  = orientation (angle) of the clothoid at initial point        %
-%       x1, y1  = coodinate of final point                                    %
-%       theta1  = orientation (angle) of the clothoid at final point          %
-%                                                                             %
-%  On output:                                                                 %
-%                                                                             %
-%       L  = the lenght of the clothoid curve from initial to final point     %
-%       k  = curvature at initial point                                       %
-%       dk = derivative of curvature respect to arclength,                    %
-%            notice that curvature at final point is k+dk*L                   %
-%       iter = Newton Iterations used to solve the interpolation problem      %
-%=============================================================================%
 %                                                                             %
 %  Autors: Enrico Bertolazzi and Marco Frego                                  %
 %          Department of Industrial Engineering                               %
@@ -26,46 +7,36 @@
 %          m.fregox@gmail.com                                                 %
 %                                                                             %
 %=============================================================================%
-function [ k, dk, L, iter ] = buildClothoid( x0, y0, theta0, x1, y1, theta1 )
+% Driver test program to check clothoid computation                           %
+%=============================================================================%
 
-  dx  = x1 - x0 ;
-  dy  = y1 - y0 ;
-  r   = sqrt( dx^2 + dy^2 ) ;
-  phi = atan2( dy, dx ) ;
+function testN4
 
-  phi0  = normalizeAngle(theta0 - phi) ;
-  phi1  = normalizeAngle(theta1 - phi) ;
-  delta = phi1 - phi0 ;
+  addpath('../G1fitting') ;
 
-  % initial point
-  Aguess = guessA( phi0, phi1 ) ;
+  mind   = 100 ;
+  maxINT = 0 ;
+  NN     = 128 ; % 1024 ;
 
-  % Newton iteration
-  [A,iter] = findA( Aguess, delta, phi0, 1e-12 ) ;
+  for phi1=[-pi*0.9999:pi/NN:pi*0.9999]
+    for phi0=[-pi*0.9999:pi/NN:pi*0.9999]
+      delta = phi1 - phi0 ;
+      % initial point
+      Aguess = guessA( phi0, phi1 ) ;
 
-  % final operation
-  [h,g] = GeneralizedFresnelCS( 1, 2*A, delta-A, phi0 ) ;
-  L = r/h ;
+      % Newton iteration
+      [A,iter] = findA( guessA( phi0, phi1 ), delta, phi0, 1e-10 ) ;
+      
+      [intC,intS] = GeneralizedFresnelCS( 3, 2*A, delta-A, phi0 ) ;
+      g  = intS(1) ;
+      dg = intC(3)-intC(2) ;
+      mind   = min([mind abs(dg)]) ;
+      maxINT = max([maxINT abs(Aguess-A)]) ;
+    end
+  end
+  fprintf(1,'Minium value of derivative of g at solution %g\n',mind) ;
+  fprintf(1,'Maximum distance from guess and solution of interpolation problem %g\n',maxINT) ;
   
-  if L > 0
-    k  = (delta - A)/L ;
-    dk = 2*A/L^2 ;
-  else
-    error('negative length') ;
-  end
-end
-
-%=============================================================================%
-%  normalizeAngle:  normalize angle in the range [-pi,pi]                     %
-%=============================================================================%
-function phi = normalizeAngle( phi_in )
-  phi = phi_in ;
-  while ( phi > pi )
-    phi = phi - 2*pi ;
-  end
-  while ( phi < -pi )
-    phi = phi + 2*pi ;
-  end
 end
 
 %=============================================================================%
@@ -102,7 +73,6 @@ function [A,iter] = findA( Aguess, delta, phi0, tol )
     fprintf( 1, 'Aguess = %g, A = %g, delta = %g , phi0 = %g\n', Aguess, A, delta, phi0 ) ;
   end
 end
-
 %=============================================================================%
 %  guessA:  Find guess for zeros of function g(A)                             %
 %                                                                             %

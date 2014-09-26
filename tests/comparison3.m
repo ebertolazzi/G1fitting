@@ -13,7 +13,7 @@ addpath('../meekAndWalton');
 
 close all ;
 
-tol     = 1E-12 ;
+%tol     = 1E-12 ;
 maxIter = 100 ;
 npts    = 400 ;
 
@@ -73,7 +73,7 @@ for kk=1:10
   
   fprintf('Meek & Walton,      iter %3d error %10g %10g [kind %d]\n', iter, norm(e1,2), norm(e2,2),kind ) ; 
   
-  [k,dk,Lsol,iter] = buildClothoid( P1(1), P1(2), a1, P2(1), P2(2), a2, tol ) ;
+  [k,dk,Lsol,iter] = buildClothoid( P1(1), P1(2), a1, P2(1), P2(2), a2 ) ;
   [Xe,Ye]          = evalClothoid( P1(1), P1(2), a1, k, dk, Lsol ) ;
   
   ee2 = [Xe;Ye]-P2 ;

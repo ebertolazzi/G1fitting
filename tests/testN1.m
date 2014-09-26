@@ -15,7 +15,6 @@ addpath('../G1fitting');
 close all ;
 
 NPTS   = 400     ; % number of points per curve used for plotting
-TOL    = 1e-12   ; % tolerance used in the Newton-Raphson iteration
 arange = pi*0.99 ;
 brange = pi*0.5  ;
 rangle = pi/2    ; % rotate curves by rangle
@@ -43,12 +42,10 @@ for theta=thetaV
     theta1 = phi+rangle+theta ;
     fprintf('final point (%g,%g) initial angle = %g\n', x1, y1, theta1) ;
     [k,dk,Lsol] = buildClothoid( x0, y0, theta0, ... % starting point
-                                 x1, y1, theta1, ... % ending point
-                                 TOL ) ;
-    XY = pointsOnClothoid( x0, x0, theta0, ... % initial point and direction
-                           k, dk, Lsol,    ... % clothoid parameters
-                           NPTS ) ;
-    plot( XY(1,:), XY(2,:), '-', 'Color', color{kk} ) ; % plot computed curve
+                                 x1, y1, theta1  ... % ending point
+                               ) ;
+    [X,Y] = pointsOnClothoid( x0, y0, theta0, k, dk, Lsol, NPTS ) ; % initial point and direction clothoid parameters
+    plot( X, Y, '-', 'Color', color{kk} ) ; % plot computed curve
   end
   kk = kk+1 ;
   if kk > 5

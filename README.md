@@ -54,7 +54,21 @@ To plot the computed curve use MATLAB `plot` command as usual:
 
 `plot( XY(1,:), XY(2,:), '-r' ) ;`
 
-Three sample scripts: TestN0, TestN1, TestN2 shows how to use the functions.
+Four sample scripts: TestN0, TestN1, TestN2 and TestN3 shows how to use the functions.
+
+**Mex files for fast computation:**
+
+In directory `mex_srcs` you find a C++ implementation of the proposed algorithm 
+with `mex` interface. To compile run `Compile` from MATLAB window.
+After compilation the compiled version of the scripts
+
+- buildClothoid
+- evalClothoid
+- FresnelCS
+- GeneralizedFresnelCS
+- pointsOnClothoid
+
+are available in the `G1fitting` directoty.
 
 **Authors:**
 	

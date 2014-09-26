@@ -14,7 +14,7 @@ addpath('../G1fitting');
 
 close all ;
 
-tol  = 1e-12 ;
+%tol  = 1e-12 ;
 npts = 400 ;
 
 % initial point with angle direction
@@ -33,7 +33,7 @@ fprintf('final point (%g,%g) final angle = %g\n', x1, y1, theta1) ;
 fprintf('tolerance = %g\n', tol ) ;
 
 % compute clothoid parameters
-[k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1, tol ) ;
+[k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ;
 
 fprintf('Computed parameters: k = %g, k'' = %g, L = %g\n', k, dk, L ) ;
 

@@ -26,11 +26,19 @@
 %          m.fregox@gmail.com                                                 %
 %                                                                             %
 %=============================================================================%
-function XY = pointsOnClothoid( x0, y0, theta0, kappa, dkappa, L, npts )
-  XY   = [] ;
+function varargout = pointsOnClothoid( x0, y0, theta0, kappa, dkappa, L, npts )
+  X = [] ;
+  Y = [] ;
   tvec = [0:L/npts:L] ;
   for t=tvec
     [C,S] = GeneralizedFresnelCS( 1, dkappa*t^2, kappa*t, theta0 ) ;
-    XY    = [ XY [ x0 + t*C ; y0 + t*S ] ] ;
+    X = [ X x0 + t*C ] ;
+    Y = [ Y y0 + t*S ] ;
+  end
+  if nargout > 1
+    varargout{1} = X ;
+    varargout{2} = Y ;
+  else
+    varargout{1} = [X ; Y] ;
   end
 end
