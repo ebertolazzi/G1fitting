@@ -298,6 +298,96 @@ namespace Clothoid {
     }
   }
 
+
+  // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  static
+  valueType
+  eval2f1( valueType a, valueType b, valueType c, valueType z ) {
+    valueType tol = 1e-20 ;
+    // Initialise vector of individual terms and sum of terms computed thus far
+    valueType a1 = 1 ;
+    valueType b1 = 1 ;
+    valueType aj = a ;
+    valueType bj = b ;
+    valueType cj = c ;
+    for ( int j=1 ; j < 500 ; ++j ) {
+      // Update value of a1, current term, and b1, sum of all terms in terms of previous values
+      valueType a1new = (aj*bj/(cj*j))*z*a1 ;
+      b1 += a1new ;
+      // Terminate summation if stopping criterion is satisfied
+      valueType tol1 = abs(b1)*tol ;
+      if ( std::abs(a1) < tol1 && std::abs(a1new) < tol1 ) return b1 ;
+      aj += 1 ;
+      bj += 1 ;
+      cj += 1 ;
+      a1 = a1new ;
+    }
+    return 0 ;
+    // error failed to converge ;
+  }
+
+  // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  static
+  valueType
+  gamma3( valueType a, valueType b, valueType c ) {
+    using std::tgamma ;
+    if ( ( b < 0 && std::abs(std::round(b)-b) < 1e-12 ) ||
+         ( c < 0 && std::abs(std::round(c)-c) < 1e-12 ) ) return 0 ;
+    return tgamma(a)/(tgamma(b)*tgamma(c)) ;
+  }
+
+  // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  static
+  valueType
+  hyper2f1( valueType a, valueType b, valueType c, valueType z ) {
+    //------------------------------------------------------------------------//
+    // based on the work of John Pearson, University of Oxford                //
+    // in the MSc dissertation 'Computation of Hypergeometric Functions'      //
+    //------------------------------------------------------------------------//
+    // Applies transformation formulae detailed in Section 4.6.               //
+    //------------------------------------------------------------------------//
+    if ( z < -1 ) {
+      valueType mz  = 1-z ;
+      valueType z1  = 1/mz ;
+      valueType bma = b-a ;
+      valueType cma = c-a ;
+      valueType cmb = c-b ;
+      valueType cf1 = gamma3(bma,b,cma)*eval2f1(a,cmb,1-bma,z1) ;
+      valueType cf2 = gamma3(-bma,a,cmb)*eval2f1(b,cma,1+bma,z1) ;
+      return tgamma(c) * ( pow(mz,-a)*cf1+pow(mz,-b)*cf2 ) ;
+    } else if ( z < 0 ) {
+      return pow(1-z,-a)*eval2f1(a,c-b,c,z/(z-1)) ;
+    } else if ( z <= 0.5 ) {
+      return eval2f1(a,b,c,z) ;
+    } else if ( z < 1 ) {
+      valueType z1    = 1-z ;
+      valueType cma   = c-a ;
+      valueType cmb   = c-b ;
+      valueType cmamb = c-a-b ;
+      valueType cf1   = gamma3(cmamb,cma,cmb)*eval2f1(a,b,1-cmamb,z1) ;
+      valueType cf2   = gamma3(-cmamb,a,b)*eval2f1(cma,cmb,cmamb+1,z1) ;
+      return tgamma(c)*( cf1 + pow(z1,cmamb)*cf2 ) ;
+    } else if ( z < 2 ) {
+      valueType z1    = 1-1/z ;
+      valueType cma   = c-a ;
+      valueType cmamb = cma-b ;
+      valueType cf1   = gamma3(cmamb,cma,c-b)*eval2f1(a,1-cma,1-cmamb,z1) ;
+      valueType cf2   = gamma3(-cmamb,a,b)*eval2f1(cma,1-a,1+cmamb,z1) ;
+      return tgamma(c) * ( pow(z,-a)*cf1 + pow(z,-cma)*pow(1-z,cmamb)*cf2 ) ;
+    } else {
+      valueType z1  = 1/z ;
+      valueType cma = c-a ;
+      valueType cmb = c-b ;
+      valueType bma = b-a ;
+      valueType cf1 = gamma3(bma,b,cma)*eval2f1(a,1-cma,-bma,z1) ;
+      valueType cf2 = gamma3(-bma,a,cmb)*eval2f1(1-cmb,b,bma+1,z1) ;
+      return tgamma(c)*( pow(-z,-a)*cf1 + pow(-z,-b)*cf2 ) ;
+    }
+  }
+
   //! \cond NODOC
 
   // -------------------------------------------------------------------------
@@ -388,15 +478,10 @@ namespace Clothoid {
 
   static
   valueType
-  LommelReduced( valueType mu, valueType nu, valueType b ) {
-    valueType tmp = 1/((mu+nu+1)*(mu-nu+1)) ;
-    valueType res = tmp ;
-    for ( int n = 1 ; n < 100 ; ++n ) {
-      tmp *= (-b/(2*n+mu-nu+1)) * (b/(2*n+mu+nu+1)) ;
-      res += tmp ;
-      if ( std::abs(tmp) < std::abs(res) * 1e-50 ) break ;
-    }
-    return res ;
+  LommelReduced( valueType mu, valueType nu, valueType z ) {
+    valueType a = (mu-nu+1)/2 ;
+    valueType b = (mu+nu+1)/2 ;
+    return hyper2f1(a+1,b+1,1,-z*z/4)/(a*b) ;
   }
 
   // -------------------------------------------------------------------------
@@ -456,7 +541,7 @@ namespace Clothoid {
     Y = Y0[0]+(a/2)*X0[2] ;
 
     valueType t  = 1 ;
-    valueType aa = -a*a/8  ;
+    valueType aa = -a*a/16 ; // controllare!
     for ( int n=1 ; n <= p ; ++n ) {
       t *= aa/(n*(2*n-1)) ;
       valueType bf = a/(4*n+2) ;
@@ -492,7 +577,7 @@ namespace Clothoid {
     }
 
     valueType t  = 1 ;
-    valueType aa = -a*a/8  ;
+    valueType aa = -a*a/16 ; // controllare!
     for ( int n=1 ; n <= p ; ++n ) {
       t *= aa/(n*(2*n-1)) ;
       valueType bf = a/(4*n+2) ;
@@ -540,7 +625,7 @@ namespace Clothoid {
 
     CLOTHOID_ASSERT( nk > 0, "nk = " << nk << " must be > 0" ) ;
 
-    if ( std::abs(a) < 0.01 ) evalXYaSmall( nk, a, b, 5, intC, intS ) ;
+    if ( std::abs(a) < 1e-4 ) evalXYaSmall( nk, a, b, 3, intC, intS ) ;
     else                      evalXYaLarge( nk, a, b,    intC, intS ) ;
 
     valueType cosc = cos(c) ;

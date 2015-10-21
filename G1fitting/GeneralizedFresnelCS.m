@@ -29,14 +29,10 @@
 %=============================================================================%
 function [X,Y] = GeneralizedFresnelCS( nk, a, b, c )
 
-  absa = abs(a) ;
-  epsi = 0.01   ; % best thresold
+  epsi = 1e-4 ; % best thresold
 
-  X = zeros( nk, 1 ) ;
-  Y = zeros( nk, 1 ) ;
-
-  if absa < epsi % case `a` small
-    [X,Y] = evalXYaSmall( nk, a, b, 5 ) ;
+  if abs(a) < epsi % case `a` small
+    [X,Y] = evalXYaSmall( nk, a, b, 3 ) ;
   else
     [X,Y] = evalXYaLarge( nk, a, b ) ;
   end
@@ -109,16 +105,11 @@ end
 %
 %
 %
-function res = S(mu,nu,b)
-  tmp = 1/((mu+nu+1)*(mu-nu+1)) ;
-  res = tmp ;
-  for n=1:100
-    tmp = tmp * (-b/(2*n+mu-nu+1)) * (b/(2*n+mu+nu+1)) ;
-    res = res + tmp ;
-    if abs(tmp) < abs(res) * 1e-50
-      break ;
-    end;
-  end
+function res = rLommel(mu, nu, z)
+  % 1F2( 1; (mu-nu+3)/2, (mu+nu+3)/2, -z^2/4 ) ;
+  a   = (mu-nu+1)/2 ;
+  b   = (mu+nu+1)/2 ;
+  res = hyper2f1(a+1,b+1,1,-z^2/4)/(a*b) ;
 end
 %
 %
@@ -141,8 +132,12 @@ function [X,Y] = evalXYazero( nk, b )
   B = b*D ;
   C = -b2*sb ;
   for k=1:nk-1
-    X(k+1) = ( k*A*S(k+1/2,3/2,b) + B*S(k+3/2,1/2,b) + cb )/(1+k) ;
-    Y(k+1) = ( C*S(k+3/2,3/2,b) + sb ) / (2+k) + D*S(k+1/2,1/2,b) ;
+    rLa    = rLommel(k+1/2,3/2,b) ;
+    rLb    = rLommel(k+3/2,1/2,b) ;
+    rLc    = rLommel(k+3/2,3/2,b) ;
+    rLd    = rLommel(k+1/2,1/2,b) ;
+    X(k+1) = ( k*A*rLa + B*rLb + cb )/(1+k) ;
+    Y(k+1) = ( C*rLc + sb ) / (2+k) + D*rLd ;
   end
 end
 %
@@ -150,12 +145,14 @@ end
 %
 function [X,Y] = evalXYaSmall( nk, a, b, p )
   [X0,Y0] = evalXYazero( nk + 4*p + 2, b ) ;
+  
+  X = zeros(nk,1) ;
+  Y = zeros(nk,1) ;
 
   for j=1:nk
     X(j) = X0(j)-a*Y0(j+2)/2 ;
     Y(j) = Y0(j)+a*X0(j+2)/2 ;
   end
-
   t  = 1 ;
   aa = -(a/4)^2 ;
   for n=1:p
