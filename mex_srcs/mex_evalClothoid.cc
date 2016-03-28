@@ -15,6 +15,35 @@
 #include "Clothoid.hh"
 #include "mex.h"
 
+#define MEX_ERROR_MESSAGE \
+"%======================================================================%\n" \
+"% evalClothoid:  Compute clothoid parameters along a Clothoid curve    %\n" \
+"%                                                                      %\n" \
+"% USAGE: [X,Y,TH,K] = evalClothoid( x0, y0, theta0, k, dk, s ) ;       %\n" \
+"%                                                                      %\n" \
+"% On input:                                                            %\n" \
+"%                                                                      %\n" \
+"%  x0, y0 = coodinate of initial point                                 %\n" \
+"%  theta0 = orientation (angle) of the clothoid at initial point       %\n" \
+"%  k      = curvature at initial point                                 %\n" \
+"%  dk     = derivative of curvature respect to arclength               %\n" \
+"%  s      = vector of curvilinear coordinate where to compute clothoid %\n" \
+"%                                                                      %\n" \
+"% On output:                                                           %\n" \
+"%                                                                      %\n" \
+"%  X     = X coordinate of the points of the clothoid at s coordinate  %\n" \
+"%  Y     = Y coordinate of the points of the clothoid at s coordinate  %\n" \
+"%  TH    = angle of the clothoid at s coordinate                       %\n" \
+"%  K     = curvature of the clothoid at s coordinate                   %\n" \
+"%======================================================================%\n" \
+"%                                                                      %\n" \
+"%  Autor: Enrico Bertolazzi                                            %\n" \
+"%         Department of Industrial Engineering                         %\n" \
+"%         University of Trento                                         %\n" \
+"%         enrico.bertolazzi@unitn.it                                   %\n" \
+"%                                                                      %\n" \
+"%======================================================================%\n"
+
 #define arg_x0     prhs[0]
 #define arg_y0     prhs[1]
 #define arg_theta0 prhs[2]
@@ -41,34 +70,8 @@ mexFunction( int nlhs, mxArray       *plhs[],
 
   // Check for proper number of arguments, etc
   if ( nrhs != 6 ) {
-	  mexErrMsgTxt(
-"%======================================================================%\n"
-"% evalClothoid:  Compute clothoid parameters along a Clothoid curve    %\n"
-"%                                                                      %\n"
-"% USAGE: [X,Y,TH,K] = evalClothoid( x0, y0, theta0, k, dk, s ) ;       %\n"
-"%                                                                      %\n"
-"% On input:                                                            %\n"
-"%                                                                      %\n"
-"%  x0, y0 = coodinate of initial point                                 %\n"
-"%  theta0 = orientation (angle) of the clothoid at initial point       %\n"
-"%  k      = curvature at initial point                                 %\n"
-"%  dk     = derivative of curvature respect to arclength               %\n"
-"%  s      = vector of curvilinear coordinate where to compute clothoid %\n"
-"%                                                                      %\n"
-"% On output:                                                           %\n"
-"%                                                                      %\n"
-"%  X     = X coordinate of the points of the clothoid at s coordinate  %\n"
-"%  Y     = Y coordinate of the points of the clothoid at s coordinate  %\n"
-"%  TH    = angle of the clothoid at s coordinate                       %\n"
-"%  K     = curvature of the clothoid at s coordinate                   %\n"
-"%======================================================================%\n"
-"%                                                                      %\n"
-"%  Autor: Enrico Bertolazzi                                            %\n"
-"%         Department of Industrial Engineering                         %\n"
-"%         University of Trento                                         %\n"
-"%         enrico.bertolazzi@unitn.it                                   %\n"
-"%                                                                      %\n"
-"%======================================================================%\n" ) ;
+	  mexErrMsgTxt(MEX_ERROR_MESSAGE) ;
+    return ;
   }
 
   for ( int kk = 0 ; kk < 5 ; ++kk )

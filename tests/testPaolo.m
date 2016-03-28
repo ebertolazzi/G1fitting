@@ -14,18 +14,17 @@ addpath('../G1fitting');
 
 close all ;
 
-%tol  = 1e-12 ;
 npts = 400 ;
 
 % initial point with angle direction
-x0     = 0.5 ;
-y0     = 0   ;
-theta0 = 1   ;
+x0     = 0 ;
+y0     = 0.1 ;
+theta0 = 1.571 ;
 
 % final point with angle direction
-x1     = 0.5 ;
-y1     = 0.5 ;
-theta1 = 1   ;
+x1     = 0.085 ;
+y1     = 0.035 ;
+theta1 = 2.356 ;
 
 fprintf('Testing G1 Clothoid interpolation\n') ;
 fprintf('initial point (%g,%g) initial angle = %g\n', x0, y0, theta0) ;

@@ -18,6 +18,36 @@
 #include <sstream>
 #include <stdexcept>
 
+#define MEX_ERROR_MESSAGE \
+"%======================================================================%\n" \
+"%  buildClothoid:  Compute parameters of the G1 clothoid fitting       %\n" \
+"%                                                                      %\n" \
+"%  USAGE: [k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ; %\n" \
+"%                                                                      %\n" \
+"%  On input:                                                           %\n" \
+"%                                                                      %\n" \
+"%    x0, y0  = coodinate of initial point                              %\n" \
+"%    theta0  = orientation (angle) of the clothoid at initial point    %\n" \
+"%    x1, y1  = coodinate of final point                                %\n" \
+"%    theta1  = orientation (angle) of the clothoid at final point      %\n" \
+"%                                                                      %\n" \
+"%  On output:                                                          %\n" \
+"%                                                                      %\n" \
+"%    L  = the lenght of the clothoid curve from initial to final point %\n" \
+"%    k  = curvature at initial point                                   %\n" \
+"%    dk = derivative of curvature respect to arclength,                %\n" \
+"%         notice that curvature at final point is k+dk*L               %\n" \
+"%    iter = optionally if present store iteration used                 %\n" \
+"%                                                                      %\n" \
+"%======================================================================%\n" \
+"%                                                                      %\n" \
+"%  Autor: Enrico Bertolazzi                                            %\n" \
+"%         Department of Industrial Engineering                         %\n" \
+"%         University of Trento                                         %\n" \
+"%         enrico.bertolazzi@unitn.it                                   %\n" \
+"%                                                                      %\n" \
+"%======================================================================%\n"
+
 #define ASSERT(COND,MSG)                      \
   if ( !(COND) ) {                            \
     std::ostringstream ost ;                  \
@@ -44,35 +74,8 @@ mexFunction( int nlhs, mxArray       *plhs[],
 
   // Check for proper number of arguments, etc
   if ( nrhs < 6 ) {
-	  mexErrMsgTxt(
-"%======================================================================%\n"
-"%  buildClothoid:  Compute parameters of the G1 clothoid fitting       %\n"
-"%                                                                      %\n"
-"%  USAGE: [k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ; %\n"
-"%                                                                      %\n"
-"%  On input:                                                           %\n"
-"%                                                                      %\n"
-"%    x0, y0  = coodinate of initial point                              %\n"
-"%    theta0  = orientation (angle) of the clothoid at initial point    %\n"
-"%    x1, y1  = coodinate of final point                                %\n"
-"%    theta1  = orientation (angle) of the clothoid at final point      %\n"
-"%                                                                      %\n"
-"%  On output:                                                          %\n"
-"%                                                                      %\n"
-"%    L  = the lenght of the clothoid curve from initial to final point %\n"
-"%    k  = curvature at initial point                                   %\n"
-"%    dk = derivative of curvature respect to arclength,                %\n"
-"%         notice that curvature at final point is k+dk*L               %\n"
-"%    iter = optionally if present store iteration used                 %\n"
-"%                                                                      %\n"
-"%======================================================================%\n"
-"%                                                                      %\n"
-"%  Autor: Enrico Bertolazzi                                            %\n"
-"%         Department of Industrial Engineering                         %\n"
-"%         University of Trento                                         %\n"
-"%         enrico.bertolazzi@unitn.it                                   %\n"
-"%                                                                      %\n"
-"%======================================================================%\n" ) ;
+	  mexErrMsgTxt(MEX_ERROR_MESSAGE) ;
+    return ;
   } else if ( mxGetClassID(arg_x0)     != mxDOUBLE_CLASS ||
               mxGetClassID(arg_y0)     != mxDOUBLE_CLASS ||
               mxGetClassID(arg_theta0) != mxDOUBLE_CLASS ||

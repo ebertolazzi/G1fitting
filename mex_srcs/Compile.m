@@ -7,7 +7,7 @@ NAMES = { 'FresnelCS', ...
           'pointsOnClothoid' } ;
 
 disp('---------------------------------------------------------');
-for k=1:4
+for k=1:length(NAMES)
   N=NAMES{k} ;
   fprintf(1,'Compiling: %s\n',N) ;
 

@@ -117,6 +117,10 @@ namespace Clothoid {
                  valueType & dk,
                  valueType & L ) ;
 
+  //! Compute Lommel function
+  valueType
+  LommelReduced( valueType mu, valueType nu, valueType z ) ;
+
 }
 
 #endif

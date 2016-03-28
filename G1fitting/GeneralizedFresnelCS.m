@@ -29,7 +29,7 @@
 %=============================================================================%
 function [X,Y] = GeneralizedFresnelCS( nk, a, b, c )
 
-  epsi = 1e-4 ; % best thresold
+  epsi = 1e-2 ; % best thresold
 
   if abs(a) < epsi % case `a` small
     [X,Y] = evalXYaSmall( nk, a, b, 3 ) ;
@@ -105,11 +105,24 @@ end
 %
 %
 %
-function res = rLommel(mu, nu, z)
-  % 1F2( 1; (mu-nu+3)/2, (mu+nu+3)/2, -z^2/4 ) ;
-  a   = (mu-nu+1)/2 ;
-  b   = (mu+nu+1)/2 ;
-  res = hyper2f1(a+1,b+1,1,-z^2/4)/(a*b) ;
+function res = rLommel_MATLAB(mu, nu, z)
+  a   = mu-nu+1 ;
+  b   = mu+nu+1 ;
+  res = eval(hypergeom(1,[a/2+1,b/2+1],-z^2/4)/(a*b)) ;
+end
+%
+%
+%
+function res = rLommel(mu,nu,b)
+  tmp = 1/((mu+nu+1)*(mu-nu+1)) ;
+  res = tmp ;
+  for n=1:100
+    tmp = tmp * (-b/(2*n+mu-nu+1)) * (b/(2*n+mu+nu+1)) ;
+    res = res + tmp ;
+    if abs(tmp) < abs(res) * 1e-50
+      break ;
+    end;
+  end
 end
 %
 %
@@ -117,27 +130,38 @@ end
 function [X,Y] = evalXYazero( nk, b )
   X  = zeros(nk,1) ;
   Y  = zeros(nk,1) ;
-  sb = sin(b) ;
-  cb = cos(b) ;
+  sb = sin(b);
+  cb = cos(b);
   b2 = b*b ;
   if abs(b) < 1e-3
-    X(1) = 1-b2/6*(1-b2/20*(1-b2/42)) ;
-    Y(1) = (b/2)*(1-b2/12*(1-b2/30)) ;
+    X(1) = 1-(b2/6)*(1-(b2/20)*(1-(b2/42))) ;
+    Y(1) = (b/2)*(1-(b2/12)*(1-(b2/30))) ;
   else
     X(1) = sb/b ;
     Y(1) = (1-cb)/b ;
   end
-  A = b*sb ;
-  D = sb-b*cb ;
-  B = b*D ;
-  C = -b2*sb ;
-  for k=1:nk-1
-    rLa    = rLommel(k+1/2,3/2,b) ;
-    rLb    = rLommel(k+3/2,1/2,b) ;
-    rLc    = rLommel(k+3/2,3/2,b) ;
-    rLd    = rLommel(k+1/2,1/2,b) ;
-    X(k+1) = ( k*A*rLa + B*rLb + cb )/(1+k) ;
-    Y(k+1) = ( C*rLc + sb ) / (2+k) + D*rLd ;
+  % use recurrence in the stable part
+  m = min( [ max([1,floor(2*b)]), nk] ) ;
+  for k=1:m-1
+    X(k+1) = (sb-k*Y(k))/b ;
+    Y(k+1) = (k*X(k)-cb)/b ;
+  end
+  % use Lommel for the unstable part
+  if m < nk
+    A   = b*sb ;
+    D   = sb-b*cb ;
+    B   = b*D ;
+    C   = -b2*sb ;
+    rLa = rLommel(m+1/2,3/2,b) ;
+    rLd = rLommel(m+1/2,1/2,b) ;
+    for k=m:nk-1
+      rLb    = rLommel(k+3/2,1/2,b) ;
+      rLc    = rLommel(k+3/2,3/2,b) ;
+      X(k+1) = ( k*A*rLa + B*rLb + cb )/(1+k) ;
+      Y(k+1) = ( C*rLc + sb ) / (2+k) + D*rLd ;
+      rLa = rLc ;
+      rLd = rLb ;
+    end
   end
 end
 %
@@ -145,22 +169,25 @@ end
 %
 function [X,Y] = evalXYaSmall( nk, a, b, p )
   [X0,Y0] = evalXYazero( nk + 4*p + 2, b ) ;
-  
-  X = zeros(nk,1) ;
-  Y = zeros(nk,1) ;
+
+  X    = zeros(nk,1) ;
+  Y    = zeros(nk,1) ;
+  tmpX = zeros(p+1,1) ;
+  tmpY = zeros(p+1,1) ;
 
   for j=1:nk
-    X(j) = X0(j)-a*Y0(j+2)/2 ;
-    Y(j) = Y0(j)+a*X0(j+2)/2 ;
-  end
-  t  = 1 ;
-  aa = -(a/4)^2 ;
-  for n=1:p
-    t  = t*aa/(n*(2*n-1)) ;
-    bf = a/(4*n+2) ;
-    for j=1:nk
-      X(j) = X(j) + t*(X0(4*n+j)-bf*Y0(4*n+j+2)) ;
-      Y(j) = Y(j) + t*(Y0(4*n+j)+bf*X0(4*n+j+2)) ;
+    tmpX(1) = X0(j)-(a/2)*Y0(j+2) ;
+    tmpY(1) = Y0(j)+(a/2)*X0(j+2) ;
+    t  = 1 ;
+    aa = -(a/2)^2 ;
+    for n=1:p
+      ii = 4*n+j ;
+      t  = t*(aa/(2*n*(2*n-1))) ;
+      bf = a/(4*n+2) ;
+      tmpX(1+n) = t*(X0(ii)-bf*Y0(ii+2)) ;
+      tmpY(1+n) = t*(Y0(ii)+bf*X0(ii+2)) ;
     end
+    X(j) = sum(tmpX) ;
+    Y(j) = sum(tmpY) ;
   end
 end

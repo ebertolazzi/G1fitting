@@ -54,5 +54,3 @@ for theta=thetaV
 end
 hold off ;
 axis equal ;
-
-fprintf('tolerance = %g\n', TOL ) ;

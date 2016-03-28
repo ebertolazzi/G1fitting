@@ -24,15 +24,18 @@
 #include <stdexcept>
 
 #ifndef CLOTHOID_ASSERT
-  #define CLOTHOID_ASSERT(COND,MSG)                  \
-    if ( !(COND) ) {                                 \
-      std::ostringstream ost ;                       \
-      ost << "On line: " << __LINE__                 \
-          << " file: " << __FILE__                   \
-          << '\n' << MSG << '\n' ;                   \
-      throw std::runtime_error(ost.str()) ;          \
+  #define CLOTHOID_ASSERT(COND,MSG)         \
+    if ( !(COND) ) {                        \
+      std::ostringstream ost ;              \
+      ost << "On line: " << __LINE__        \
+          << " file: " << __FILE__          \
+          << '\n' << MSG << '\n' ;          \
+      throw std::runtime_error(ost.str()) ; \
     }
 #endif
+
+#define A_THRESOLD   0.01
+#define A_SERIE_SIZE 3
 
 namespace Clothoid {
 
@@ -298,96 +301,6 @@ namespace Clothoid {
     }
   }
 
-
-  // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  static
-  valueType
-  eval2f1( valueType a, valueType b, valueType c, valueType z ) {
-    valueType tol = 1e-20 ;
-    // Initialise vector of individual terms and sum of terms computed thus far
-    valueType a1 = 1 ;
-    valueType b1 = 1 ;
-    valueType aj = a ;
-    valueType bj = b ;
-    valueType cj = c ;
-    for ( int j=1 ; j < 500 ; ++j ) {
-      // Update value of a1, current term, and b1, sum of all terms in terms of previous values
-      valueType a1new = (aj*bj/(cj*j))*z*a1 ;
-      b1 += a1new ;
-      // Terminate summation if stopping criterion is satisfied
-      valueType tol1 = abs(b1)*tol ;
-      if ( std::abs(a1) < tol1 && std::abs(a1new) < tol1 ) return b1 ;
-      aj += 1 ;
-      bj += 1 ;
-      cj += 1 ;
-      a1 = a1new ;
-    }
-    return 0 ;
-    // error failed to converge ;
-  }
-
-  // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  static
-  valueType
-  gamma3( valueType a, valueType b, valueType c ) {
-    using std::tgamma ;
-    if ( ( b < 0 && std::abs(std::round(b)-b) < 1e-12 ) ||
-         ( c < 0 && std::abs(std::round(c)-c) < 1e-12 ) ) return 0 ;
-    return tgamma(a)/(tgamma(b)*tgamma(c)) ;
-  }
-
-  // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  static
-  valueType
-  hyper2f1( valueType a, valueType b, valueType c, valueType z ) {
-    //------------------------------------------------------------------------//
-    // based on the work of John Pearson, University of Oxford                //
-    // in the MSc dissertation 'Computation of Hypergeometric Functions'      //
-    //------------------------------------------------------------------------//
-    // Applies transformation formulae detailed in Section 4.6.               //
-    //------------------------------------------------------------------------//
-    if ( z < -1 ) {
-      valueType mz  = 1-z ;
-      valueType z1  = 1/mz ;
-      valueType bma = b-a ;
-      valueType cma = c-a ;
-      valueType cmb = c-b ;
-      valueType cf1 = gamma3(bma,b,cma)*eval2f1(a,cmb,1-bma,z1) ;
-      valueType cf2 = gamma3(-bma,a,cmb)*eval2f1(b,cma,1+bma,z1) ;
-      return tgamma(c) * ( pow(mz,-a)*cf1+pow(mz,-b)*cf2 ) ;
-    } else if ( z < 0 ) {
-      return pow(1-z,-a)*eval2f1(a,c-b,c,z/(z-1)) ;
-    } else if ( z <= 0.5 ) {
-      return eval2f1(a,b,c,z) ;
-    } else if ( z < 1 ) {
-      valueType z1    = 1-z ;
-      valueType cma   = c-a ;
-      valueType cmb   = c-b ;
-      valueType cmamb = c-a-b ;
-      valueType cf1   = gamma3(cmamb,cma,cmb)*eval2f1(a,b,1-cmamb,z1) ;
-      valueType cf2   = gamma3(-cmamb,a,b)*eval2f1(cma,cmb,cmamb+1,z1) ;
-      return tgamma(c)*( cf1 + pow(z1,cmamb)*cf2 ) ;
-    } else if ( z < 2 ) {
-      valueType z1    = 1-1/z ;
-      valueType cma   = c-a ;
-      valueType cmamb = cma-b ;
-      valueType cf1   = gamma3(cmamb,cma,c-b)*eval2f1(a,1-cma,1-cmamb,z1) ;
-      valueType cf2   = gamma3(-cmamb,a,b)*eval2f1(cma,1-a,1+cmamb,z1) ;
-      return tgamma(c) * ( pow(z,-a)*cf1 + pow(z,-cma)*pow(1-z,cmamb)*cf2 ) ;
-    } else {
-      valueType z1  = 1/z ;
-      valueType cma = c-a ;
-      valueType cmb = c-b ;
-      valueType bma = b-a ;
-      valueType cf1 = gamma3(bma,b,cma)*eval2f1(a,1-cma,-bma,z1) ;
-      valueType cf2 = gamma3(-bma,a,cmb)*eval2f1(1-cmb,b,bma+1,z1) ;
-      return tgamma(c)*( pow(-z,-a)*cf1 + pow(-z,-b)*cf2 ) ;
-    }
-  }
-
   //! \cond NODOC
 
   // -------------------------------------------------------------------------
@@ -419,7 +332,7 @@ namespace Clothoid {
   }
 
   // -------------------------------------------------------------------------
-
+  // nk max 3
   static
   void
   evalXYaLarge( int       nk,
@@ -427,6 +340,10 @@ namespace Clothoid {
                 valueType b,
                 valueType X[],
                 valueType Y[] ) {
+
+    CLOTHOID_ASSERT( nk < 4 && nk > 0,
+                     "In evalXYaLarge first argument nk must be in 1..3, nk " << nk ) ;
+
     valueType s    = a > 0 ? +1 : -1 ;
     valueType absa = std::abs(a) ;
     valueType z    = m_1_sqrt_pi*sqrt(absa) ;
@@ -435,14 +352,7 @@ namespace Clothoid {
     valueType cg   = cos(g)/z ;
     valueType sg   = sin(g)/z ;
 
-    #ifdef _MSC_VER
-    valueType * Cl = (valueType*)alloca( 4*nk*sizeof(valueType) ) ;
-	  valueType * Sl = Cl+nk ;
-    valueType * Cz = Sl+nk ;
-	  valueType * Sz = Cz+nk ;
-    #else
-    valueType Cl[nk], Sl[nk], Cz[nk], Sz[nk] ;
-	  #endif
+    valueType Cl[3], Sl[3], Cz[3], Sz[3] ;
 
     FresnelCS( nk, ell,   Cl, Sl ) ;
     FresnelCS( nk, ell+z, Cz, Sz ) ;
@@ -476,12 +386,16 @@ namespace Clothoid {
   // -------------------------------------------------------------------------
   // -------------------------------------------------------------------------
 
-  static
   valueType
-  LommelReduced( valueType mu, valueType nu, valueType z ) {
-    valueType a = (mu-nu+1)/2 ;
-    valueType b = (mu+nu+1)/2 ;
-    return hyper2f1(a+1,b+1,1,-z*z/4)/(a*b) ;
+  LommelReduced( valueType mu, valueType nu, valueType b ) {
+    valueType tmp = 1/((mu+nu+1)*(mu-nu+1)) ;
+    valueType res = tmp ;
+    for ( int n = 1 ; n <= 100 ; ++n ) {
+      tmp *= (-b/(2*n+mu-nu+1)) * (b/(2*n+mu+nu+1)) ;
+      res += tmp ;
+      if ( std::abs(tmp) < std::abs(res) * 1e-50 ) break ;
+    }
+    return res ;
   }
 
   // -------------------------------------------------------------------------
@@ -493,6 +407,7 @@ namespace Clothoid {
                valueType b,
                valueType X[],
                valueType Y[] ) {
+
     valueType sb = sin(b) ;
     valueType cb = cos(b) ;
     valueType b2 = b*b ;
@@ -503,17 +418,30 @@ namespace Clothoid {
       X[0] = sb/b ;
       Y[0] = (1-cb)/b ;
     }
-    valueType A = b*sb ;
-    valueType D = sb-b*cb ;
-    valueType B = b*D ;
-    valueType C = -b2*sb ;
-    for ( int k = 1 ; k < nk ; ++k ) {
-      valueType t1 = LommelReduced(k+0.5,1.5,b) ;
-      valueType t2 = LommelReduced(k+1.5,0.5,b) ;
-      valueType t3 = LommelReduced(k+1.5,1.5,b) ;
-      valueType t4 = LommelReduced(k+0.5,0.5,b) ;
-      X[k] = ( k*A*t1 + B*t2 + cb )/(1+k) ;
-      Y[k] = ( C*t3 + sb ) / (2+k) + D*t4 ;
+    // use recurrence in the stable part
+    int m = floor(2*b) ;
+    if ( m >= nk ) m = nk-1 ;
+    if ( m < 1   ) m = 1 ;
+    for ( int k = 1 ; k < m ; ++k ) {
+      X[k] = (sb-k*Y[k-1])/b ;
+      Y[k] = (k*X[k-1]-cb)/b ;
+    }
+    //  use Lommel for the unstable part
+    if ( m < nk ) {
+      valueType A   = b*sb ;
+      valueType D   = sb-b*cb ;
+      valueType B   = b*D ;
+      valueType C   = -b2*sb ;
+      valueType rLa = LommelReduced(m+0.5,1.5,b) ;
+      valueType rLd = LommelReduced(m+0.5,0.5,b) ;
+      for ( int k = m ; k < nk ; ++k ) {
+        valueType rLb = LommelReduced(k+1.5,0.5,b) ;
+        valueType rLc = LommelReduced(k+1.5,1.5,b) ;
+        X[k] = ( k*A*rLa + B*rLb + cb ) / (1+k) ;
+        Y[k] = ( C*rLc + sb ) / (2+k) + D*rLd ;
+	      rLa  = rLc ;
+  	    rLd  = rLb ;
+      }
     }
   }
 
@@ -528,22 +456,21 @@ namespace Clothoid {
                 valueType & X,
                 valueType & Y ) {
 
-    int nkk = 4*p + 3 ;
-    #ifdef _MSC_VER
-    valueType * X0 = (valueType*)alloca( nkk*sizeof(valueType) ) ;
-	  valueType * Y0 = (valueType*)alloca( nkk*sizeof(valueType) ) ;
-    #else
-    valueType X0[nkk], Y0[nkk] ;
-	  #endif
+    CLOTHOID_ASSERT( p < 11 && p > 0,
+                     "In evalXYaSmall p = " << p << " must be in 1..10" ) ;
+
+    valueType X0[43], Y0[43] ;
+
+    int nkk = 4*p + 3 ; // max 43
     evalXYazero( nkk, b, X0, Y0 ) ;
 
     X = X0[0]-(a/2)*Y0[2] ;
     Y = Y0[0]+(a/2)*X0[2] ;
 
     valueType t  = 1 ;
-    valueType aa = -a*a/16 ; // controllare!
+    valueType aa = -a*a/4 ; // controllare!
     for ( int n=1 ; n <= p ; ++n ) {
-      t *= aa/(n*(2*n-1)) ;
+      t *= aa/(2*n*(2*n-1)) ;
       valueType bf = a/(4*n+2) ;
       int jj = 4*n ;
       X += t*(X0[jj]-bf*Y0[jj+2]) ;
@@ -562,13 +489,13 @@ namespace Clothoid {
                 valueType X[],
                 valueType Y[] ) {
 
-    int nkk = nk + 4*p + 2 ;
-    #ifdef _MSC_VER
-    valueType * X0 = (valueType*)alloca( nkk*sizeof(valueType) ) ;
-	  valueType * Y0 = (valueType*)alloca( nkk*sizeof(valueType) ) ;
-    #else
-    valueType X0[nkk], Y0[nkk] ;
-	  #endif
+    int nkk = nk + 4*p + 2 ; // max 45
+    valueType X0[45], Y0[45] ;
+
+    CLOTHOID_ASSERT( nkk < 46,
+                     "In evalXYaSmall (nk,p) = (" << nk << "," << p << ")\n" <<
+                     "nk + 4*p + 2 = " << nkk  << " must be less than 46\n" ) ;
+
     evalXYazero( nkk, b, X0, Y0 ) ;
 
     for ( int j=0 ; j < nk ; ++j ) {
@@ -577,9 +504,9 @@ namespace Clothoid {
     }
 
     valueType t  = 1 ;
-    valueType aa = -a*a/16 ; // controllare!
+    valueType aa = -a*a/4 ; // controllare!
     for ( int n=1 ; n <= p ; ++n ) {
-      t *= aa/(n*(2*n-1)) ;
+      t *= aa/(2*n*(2*n-1)) ;
       valueType bf = a/(4*n+2) ;
       for ( int j = 0 ; j < nk ; ++j ) {
         int jj = 4*n+j ;
@@ -602,8 +529,8 @@ namespace Clothoid {
                         valueType & intS ) {
 
     valueType xx, yy ;
-    if ( std::abs(a) < 0.01 ) evalXYaSmall( a, b, 5, xx, yy ) ;
-    else                      evalXYaLarge( a, b,    xx, yy ) ;
+    if ( std::abs(a) < A_THRESOLD ) evalXYaSmall( a, b, A_SERIE_SIZE, xx, yy ) ;
+    else                            evalXYaLarge( a, b, xx, yy ) ;
 
     valueType cosc = cos(c) ;
     valueType sinc = sin(c) ;
@@ -623,10 +550,10 @@ namespace Clothoid {
                         valueType intC[],
                         valueType intS[] ) {
 
-    CLOTHOID_ASSERT( nk > 0, "nk = " << nk << " must be > 0" ) ;
+    CLOTHOID_ASSERT( nk > 0 && nk < 4, "nk = " << nk << " must be in 1..3" ) ;
 
-    if ( std::abs(a) < 1e-4 ) evalXYaSmall( nk, a, b, 3, intC, intS ) ;
-    else                      evalXYaLarge( nk, a, b,    intC, intS ) ;
+    if ( std::abs(a) < A_THRESOLD ) evalXYaSmall( nk, a, b, A_SERIE_SIZE, intC, intS ) ;
+    else                            evalXYaLarge( nk, a, b, intC, intS ) ;
 
     valueType cosc = cos(c) ;
     valueType sinc = sin(c) ;
@@ -662,14 +589,17 @@ namespace Clothoid {
     valueType dy  = y1 - y0 ;
     valueType r   = hypot( dx, dy ) ;
     valueType phi = atan2( dy, dx ) ;
-    
+
     valueType phi0 = theta0 - phi ;
     valueType phi1 = theta1 - phi ;
+    
+    phi0 -= m_2pi*round(phi0/m_2pi) ;
+    phi1 -= m_2pi*round(phi1/m_2pi) ;
 
-    while ( phi0 >  m_pi ) phi0 -= m_2pi ;
-    while ( phi0 < -m_pi ) phi0 += m_2pi ;
-    while ( phi1 >  m_pi ) phi1 -= m_2pi ;
-    while ( phi1 < -m_pi ) phi1 += m_2pi ;
+    if ( phi0 >  m_pi ) phi0 -= m_2pi ;
+    if ( phi0 < -m_pi ) phi0 += m_2pi ;
+    if ( phi1 >  m_pi ) phi1 -= m_2pi ;
+    if ( phi1 < -m_pi ) phi1 += m_2pi ;
 
     valueType delta = phi1 - phi0 ;
 
