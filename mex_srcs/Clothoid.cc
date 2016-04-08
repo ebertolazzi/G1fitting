@@ -631,4 +631,89 @@ namespace Clothoid {
     return niter ;
   }
 
+  int
+  buildClothoid( valueType   x0,
+                 valueType   y0,
+                 valueType   theta0,
+                 valueType   x1,
+                 valueType   y1,
+                 valueType   theta1,
+                 valueType & k,
+                 valueType & dk,
+                 valueType & L,
+                 valueType & k_1,
+                 valueType & dk_1,
+                 valueType & L_1,
+                 valueType & k_2,
+                 valueType & dk_2,
+                 valueType & L_2 ) {
+
+    // traslazione in (0,0)
+    valueType dx  = x1 - x0 ;
+    valueType dy  = y1 - y0 ;
+    valueType r   = hypot( dx, dy ) ;
+    valueType phi = atan2( dy, dx ) ;
+
+    valueType phi0 = theta0 - phi ;
+    valueType phi1 = theta1 - phi ;
+    
+    phi0 -= m_2pi*round(phi0/m_2pi) ;
+    phi1 -= m_2pi*round(phi1/m_2pi) ;
+
+    if ( phi0 >  m_pi ) phi0 -= m_2pi ;
+    if ( phi0 < -m_pi ) phi0 += m_2pi ;
+    if ( phi1 >  m_pi ) phi1 -= m_2pi ;
+    if ( phi1 < -m_pi ) phi1 += m_2pi ;
+
+    valueType delta = phi1 - phi0 ;
+
+    // punto iniziale
+    valueType X  = phi0*m_1_pi ;
+    valueType Y  = phi1*m_1_pi ;
+    valueType xy = X*Y ;
+    Y *= Y ; X *= X ;
+    valueType A = (phi0+phi1)*(CF[0]+xy*(CF[1]+xy*CF[2])+(CF[3]+xy*CF[4])*(X+Y)+CF[5]*(X*X+Y*Y)) ;
+
+    // newton
+    valueType g=0, dg, intC[3], intS[3] ;
+    int niter = 0 ;
+    do {
+      GeneralizedFresnelCS( 3, 2*A, delta-A, phi0, intC, intS ) ;
+      g   = intS[0] ;
+      dg  = intC[2] - intC[1] ;
+      A  -= g / dg ;
+    } while ( ++niter <= 10 && std::abs(g) > 1E-12 ) ;
+
+    CLOTHOID_ASSERT( std::abs(g) < 1E-8, "Newton do not converge, g = " << g << " niter = " << niter ) ;
+    GeneralizedFresnelCS( 3, 2*A, delta-A, phi0, intC, intS ) ;
+    L = r/intC[0] ;
+
+    CLOTHOID_ASSERT( L > 0, "Negative length L = " << L ) ;
+    k  = (delta-A)/L ;
+    dk = 2*A/L/L ;
+
+    valueType alpha = intC[0]*intC[1] + intS[0]*intS[1] ;
+    valueType beta  = intC[0]*intC[2] + intS[0]*intS[2] ;
+    valueType gamma = intC[0]*intC[0] + intS[0]*intS[0] ;
+    valueType tx    = intC[1]-intC[2] ;
+    valueType ty    = intS[1]-intS[2] ;
+    valueType txy   = L*(intC[1]*intS[2]-intC[2]*intS[1]) ;
+    valueType omega = L*(intS[0]*tx-intC[0]*ty) - txy ;
+    
+    delta = intC[0]*tx + intS[0]*ty ;
+
+    L_1  = omega/delta ;
+    L_2  = txy/delta ;
+
+    delta *= L ;
+    k_1  = (beta-gamma-k*omega)/delta ;
+    k_2  = -(beta+k*txy)/delta ;
+
+    delta *= L/2 ;
+    dk_1 = (gamma-alpha-dk*omega*L)/delta ;
+    dk_2 = (alpha-dk*txy*L)/delta ;
+    
+    return niter ;
+  }
+
 }

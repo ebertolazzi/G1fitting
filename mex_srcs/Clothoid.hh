@@ -117,6 +117,23 @@ namespace Clothoid {
                  valueType & dk,
                  valueType & L ) ;
 
+  int
+  buildClothoid( valueType   x0,
+                 valueType   y0,
+                 valueType   theta0,
+                 valueType   x1,
+                 valueType   y1,
+                 valueType   theta1,
+                 valueType & k,
+                 valueType & dk,
+                 valueType & L,
+                 valueType & k_1,
+                 valueType & dk_1,
+                 valueType & L_1,
+                 valueType & k_2,
+                 valueType & dk_2,
+                 valueType & L_2 ) ;
+
   //! Compute Lommel function
   valueType
   LommelReduced( valueType mu, valueType nu, valueType z ) ;

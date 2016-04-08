@@ -78,17 +78,17 @@ mexFunction( int nlhs, mxArray       *plhs[],
 
   // Check for proper number of arguments, etc
   if ( nrhs < 6 || nrhs > 7 ) {
-	  mexErrMsgTxt(MEX_ERROR_MESSAGE) ;
+    mexErrMsgTxt(MEX_ERROR_MESSAGE) ;
     return ;
   }
 
   for ( int kk = 0 ; kk < 5 ; ++kk )
     if ( mxGetM(prhs[kk]) != 1 || mxGetN(prhs[kk]) != 1 )
-	    mexErrMsgTxt("First 5 input arguments must be scalars");
+      mexErrMsgTxt("First 5 input arguments must be scalars");
 
   for ( int kk = 0 ; kk < 6 ; ++kk )
     if ( mxGetClassID(prhs[kk]) != mxDOUBLE_CLASS || mxIsComplex(prhs[kk]) )
-	    mexErrMsgTxt("First 6 argument must be real double scalars (not complex)");
+      mexErrMsgTxt("First 6 argument must be real double scalars (not complex)");
 
   Clothoid::valueType x0     = mxGetScalar(arg_x0) ;
   Clothoid::valueType y0     = mxGetScalar(arg_y0) ;
@@ -106,26 +106,38 @@ mexFunction( int nlhs, mxArray       *plhs[],
     ASSERT( L    > 0, "6th arguments (L) must be > 0, found " << L ) ;
     ASSERT( npts > 1, "7th arguments (npts) must be > 1, found " << npts ) ;
 
-    Clothoid::valueType dt = L/npts ;
+    Clothoid::valueType dt = L/(npts-1) ;
 
     if ( nlhs < 2 ) {
   	  plhs[0] = mxCreateDoubleMatrix(2, npts, mxREAL);
   	  double * pXY = mxGetPr(plhs[0]);
-      for ( Clothoid::valueType t = 0 ; t <= L ; t += dt ) {
-        Clothoid::GeneralizedFresnelCS( dk*t*t, k*t, theta0, C, S ) ;
+      *pXY++ = x0 ;
+      *pXY++ = y0 ;
+      for ( int i = 1 ; i < npts ; ++i ) {
+        Clothoid::valueType t = i*dt ;
+        Clothoid::GeneralizedFresnelCS( dk*(t*t), k*t, theta0, C, S ) ;
         *pXY++ = x0 + t*C ;
         *pXY++ = y0 + t*S ;
       }
+      Clothoid::GeneralizedFresnelCS( dk*(L*L), k*L, theta0, C, S ) ;
+      *pXY++ = x0 + L*C ;
+      *pXY++ = y0 + L*S ;
     } else {
-	    plhs[0] = mxCreateDoubleMatrix(1, npts, mxREAL);
-	    plhs[1] = mxCreateDoubleMatrix(1, npts, mxREAL);
-	    double * pX = mxGetPr(plhs[0]);
-	    double * pY = mxGetPr(plhs[1]);
-      for ( Clothoid::valueType t = 0 ; t <= L ; t += dt ) {
-      Clothoid::GeneralizedFresnelCS( dk*t*t, k*t, theta0, C, S ) ;
+      plhs[0] = mxCreateDoubleMatrix(1, npts, mxREAL);
+      plhs[1] = mxCreateDoubleMatrix(1, npts, mxREAL);
+      double * pX = mxGetPr(plhs[0]);
+      double * pY = mxGetPr(plhs[1]);
+      *pX++ = x0 ;
+      *pY++ = y0 ;
+      for ( int i = 1 ; i < npts ; ++i ) {
+        Clothoid::valueType t = i*dt ;
+        Clothoid::GeneralizedFresnelCS( dk*(t*t), k*t, theta0, C, S ) ;
         *pX++ = x0 + t*C ;
         *pY++ = y0 + t*S ;
       }
+      Clothoid::GeneralizedFresnelCS( dk*(L*L), k*L, theta0, C, S ) ;
+      *pX++ = x0 + L*C ;
+      *pY++ = y0 + L*S ;
     }
 
   } else {
@@ -138,23 +150,21 @@ mexFunction( int nlhs, mxArray       *plhs[],
   	  double * pXY = mxGetPr(plhs[0]);
       for ( int i = 0 ; i < npts ; ++i ) {
         double t = L[i] ;
-        Clothoid::GeneralizedFresnelCS( dk*t*t, k*t, theta0, C, S ) ;
+        Clothoid::GeneralizedFresnelCS( dk*(t*t), k*t, theta0, C, S ) ;
         *pXY++ = x0 + t*C ;
         *pXY++ = y0 + t*S ;
       }
     } else {
-	    plhs[0] = mxCreateDoubleMatrix(1, npts, mxREAL);
-	    plhs[1] = mxCreateDoubleMatrix(1, npts, mxREAL);
-	    double * pX = mxGetPr(plhs[0]);
-	    double * pY = mxGetPr(plhs[1]);
+      plhs[0] = mxCreateDoubleMatrix(1, npts, mxREAL);
+      plhs[1] = mxCreateDoubleMatrix(1, npts, mxREAL);
+      double * pX = mxGetPr(plhs[0]);
+      double * pY = mxGetPr(plhs[1]);
       for ( int i = 0 ; i < npts ; ++i ) {
         double t = L[i] ;
-        Clothoid::GeneralizedFresnelCS( dk*t*t, k*t, theta0, C, S ) ;
+        Clothoid::GeneralizedFresnelCS( dk*(t*t), k*t, theta0, C, S ) ;
         *pX++ = x0 + t*C ;
         *pY++ = y0 + t*S ;
       }
     }
-  
-  
   }
 }

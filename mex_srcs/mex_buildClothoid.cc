@@ -19,34 +19,45 @@
 #include <stdexcept>
 
 #define MEX_ERROR_MESSAGE \
-"%======================================================================%\n" \
-"%  buildClothoid:  Compute parameters of the G1 clothoid fitting       %\n" \
-"%                                                                      %\n" \
-"%  USAGE: [k,dk,L] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ; %\n" \
-"%                                                                      %\n" \
-"%  On input:                                                           %\n" \
-"%                                                                      %\n" \
-"%    x0, y0  = coodinate of initial point                              %\n" \
-"%    theta0  = orientation (angle) of the clothoid at initial point    %\n" \
-"%    x1, y1  = coodinate of final point                                %\n" \
-"%    theta1  = orientation (angle) of the clothoid at final point      %\n" \
-"%                                                                      %\n" \
-"%  On output:                                                          %\n" \
-"%                                                                      %\n" \
-"%    L  = the lenght of the clothoid curve from initial to final point %\n" \
-"%    k  = curvature at initial point                                   %\n" \
-"%    dk = derivative of curvature respect to arclength,                %\n" \
-"%         notice that curvature at final point is k+dk*L               %\n" \
-"%    iter = optionally if present store iteration used                 %\n" \
-"%                                                                      %\n" \
-"%======================================================================%\n" \
-"%                                                                      %\n" \
-"%  Autor: Enrico Bertolazzi                                            %\n" \
-"%         Department of Industrial Engineering                         %\n" \
-"%         University of Trento                                         %\n" \
-"%         enrico.bertolazzi@unitn.it                                   %\n" \
-"%                                                                      %\n" \
-"%======================================================================%\n"
+"%=============================================================================%\n" \
+"%  buildClothoid:  Compute parameters of the G1 Hermite clothoid fitting      %\n" \
+"%                                                                             %\n" \
+"%  USAGE: [k,dk,L,iter,k_1,dk_1,L_1,k_2,dk_2,L_2] = ...                       %\n" \
+"%                         buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ;   %\n" \
+"%                                                                             %\n" \
+"%  On input:                                                                  %\n" \
+"%                                                                             %\n" \
+"%       x0, y0  = coodinate of initial point                                  %\n" \
+"%       theta0  = orientation (angle) of the clothoid at initial point        %\n" \
+"%       x1, y1  = coodinate of final point                                    %\n" \
+"%       theta1  = orientation (angle) of the clothoid at final point          %\n" \
+"%                                                                             %\n" \
+"%  On output:                                                                 %\n" \
+"%                                                                             %\n" \
+"%       L  = the lenght of the clothoid curve from initial to final point     %\n" \
+"%       k  = curvature at initial point                                       %\n" \
+"%       dk = derivative of curvature respect to arclength,                    %\n" \
+"%            notice that curvature at final point is k+dk*L                   %\n" \
+"%       iter = Newton Iterations used to solve the interpolation problem      %\n" \
+"%                                                                             %\n" \
+"%       optional output                                                       %\n" \
+"%                                                                             %\n" \
+"%       k_1  = partial derivative of the solution respect to theta0           %\n" \
+"%       dk_1 = partial derivative of the solution respect to theta0           %\n" \
+"%       L_1  = partial derivative of the solution respect to theta0           %\n" \
+"%       k_2  = partial derivative of the solution respect to theta1           %\n" \
+"%       dk_2 = partial derivative of the solution respect to theta1           %\n" \
+"%       L_2  = partial derivative of the solution respect to theta1           %\n" \
+"%                                                                             %\n" \
+"%=============================================================================%\n" \
+"%                                                                             %\n" \
+"%  Autors: Enrico Bertolazzi and Marco Frego                                  %\n" \
+"%          Department of Industrial Engineering                               %\n" \
+"%          University of Trento                                               %\n" \
+"%          enrico.bertolazzi@unitn.it                                         %\n" \
+"%          m.fregox@gmail.com                                                 %\n" \
+"%                                                                             %\n" \
+"%=============================================================================%\n"
 
 #define ASSERT(COND,MSG)                      \
   if ( !(COND) ) {                            \
@@ -66,6 +77,12 @@
 #define arg_dk     plhs[1]
 #define arg_L      plhs[2]
 #define arg_iter   plhs[3]
+#define arg_k_1    plhs[4]
+#define arg_dk_1   plhs[5]
+#define arg_L_1    plhs[6]
+#define arg_k_2    plhs[7]
+#define arg_dk_2   plhs[8]
+#define arg_L_2    plhs[9]
 
 extern "C"
 void
@@ -96,23 +113,47 @@ mexFunction( int nlhs, mxArray       *plhs[],
     if ( mxGetM(prhs[kk]) != 1 || mxGetN(prhs[kk]) != 1 )
 	    mexErrMsgTxt("Input arguments must be scalars");
 
-  ASSERT( nlhs == 3 || nlhs == 4,
+  ASSERT( nlhs == 3 || nlhs == 4 || nlhs == 10,
           "wrong number of outout arguments\n"
-          "expected 3 or 4, found " << nlhs ) ;
+          "expected 3 or 4 or 10, found " << nlhs ) ;
 
-  Clothoid::valueType k, dk, L ;
-  int iter = Clothoid::buildClothoid( mxGetScalar(arg_x0),
-                                      mxGetScalar(arg_y0),
-                                      mxGetScalar(arg_theta0),
-                                      mxGetScalar(arg_x1),
-                                      mxGetScalar(arg_y1),
-                                      mxGetScalar(arg_theta1),
-                                      k, dk, L ) ;
+  int iter ;
+  if ( nlhs == 10 ) {
+    Clothoid::valueType k, dk, L, k_1, dk_1, L_1, k_2, dk_2, L_2 ;
+    iter = Clothoid::buildClothoid( mxGetScalar(arg_x0),
+                                    mxGetScalar(arg_y0),
+                                    mxGetScalar(arg_theta0),
+                                    mxGetScalar(arg_x1),
+                                    mxGetScalar(arg_y1),
+                                    mxGetScalar(arg_theta1),
+                                    k, dk, L, k_1, dk_1, L_1, k_2, dk_2, L_2 ) ;
 
-  arg_k  = mxCreateDoubleScalar(k) ;
-  arg_dk = mxCreateDoubleScalar(dk) ;
-  arg_L  = mxCreateDoubleScalar(L) ;
-  if ( nlhs == 4 ) {
+    arg_k    = mxCreateDoubleScalar(k) ;
+    arg_dk   = mxCreateDoubleScalar(dk) ;
+    arg_L    = mxCreateDoubleScalar(L) ;
+
+    arg_k_1  = mxCreateDoubleScalar(k_1) ;
+    arg_dk_1 = mxCreateDoubleScalar(dk_1) ;
+    arg_L_1  = mxCreateDoubleScalar(L_1) ;
+
+    arg_k_2  = mxCreateDoubleScalar(k_2) ;
+    arg_dk_2 = mxCreateDoubleScalar(dk_2) ;
+    arg_L_2  = mxCreateDoubleScalar(L_2) ;
+  
+  } else {
+    Clothoid::valueType k, dk, L ;
+    iter = Clothoid::buildClothoid( mxGetScalar(arg_x0),
+                                    mxGetScalar(arg_y0),
+                                    mxGetScalar(arg_theta0),
+                                    mxGetScalar(arg_x1),
+                                    mxGetScalar(arg_y1),
+                                    mxGetScalar(arg_theta1),
+                                    k, dk, L ) ;
+    arg_k  = mxCreateDoubleScalar(k) ;
+    arg_dk = mxCreateDoubleScalar(dk) ;
+    arg_L  = mxCreateDoubleScalar(L) ;
+  }
+  if ( nlhs >= 4 ) {
     arg_iter = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL) ;
     *((int*)mxGetData(arg_iter)) = iter ;
   }
