@@ -83,12 +83,16 @@ mexFunction( int nlhs, mxArray       *plhs[],
   }
 
   for ( int kk = 0 ; kk < 5 ; ++kk )
-    if ( mxGetM(prhs[kk]) != 1 || mxGetN(prhs[kk]) != 1 )
+    if ( mxGetM(prhs[kk]) != 1 || mxGetN(prhs[kk]) != 1 ) {
       mexErrMsgTxt("First 5 input arguments must be scalars");
+      return ;
+    }
 
   for ( int kk = 0 ; kk < 6 ; ++kk )
-    if ( mxGetClassID(prhs[kk]) != mxDOUBLE_CLASS || mxIsComplex(prhs[kk]) )
+    if ( mxGetClassID(prhs[kk]) != mxDOUBLE_CLASS || mxIsComplex(prhs[kk]) ) {
       mexErrMsgTxt("First 6 argument must be real double scalars (not complex)");
+      return ;
+    }
 
   Clothoid::valueType x0     = mxGetScalar(arg_x0) ;
   Clothoid::valueType y0     = mxGetScalar(arg_y0) ;
@@ -108,12 +112,12 @@ mexFunction( int nlhs, mxArray       *plhs[],
 
     Clothoid::valueType dt = L/(npts-1) ;
 
-    if ( nlhs < 2 ) {
+    if ( nlhs == 1 ) {
   	  plhs[0] = mxCreateDoubleMatrix(2, npts, mxREAL);
   	  double * pXY = mxGetPr(plhs[0]);
       *pXY++ = x0 ;
       *pXY++ = y0 ;
-      for ( int i = 1 ; i < npts ; ++i ) {
+      for ( int i = 1 ; i < npts-1 ; ++i ) {
         Clothoid::valueType t = i*dt ;
         Clothoid::GeneralizedFresnelCS( dk*(t*t), k*t, theta0, C, S ) ;
         *pXY++ = x0 + t*C ;
@@ -122,14 +126,14 @@ mexFunction( int nlhs, mxArray       *plhs[],
       Clothoid::GeneralizedFresnelCS( dk*(L*L), k*L, theta0, C, S ) ;
       *pXY++ = x0 + L*C ;
       *pXY++ = y0 + L*S ;
-    } else {
+    } else if ( nlhs == 2 ) {
       plhs[0] = mxCreateDoubleMatrix(1, npts, mxREAL);
       plhs[1] = mxCreateDoubleMatrix(1, npts, mxREAL);
       double * pX = mxGetPr(plhs[0]);
       double * pY = mxGetPr(plhs[1]);
       *pX++ = x0 ;
       *pY++ = y0 ;
-      for ( int i = 1 ; i < npts ; ++i ) {
+      for ( int i = 1 ; i < npts-1 ; ++i ) {
         Clothoid::valueType t = i*dt ;
         Clothoid::GeneralizedFresnelCS( dk*(t*t), k*t, theta0, C, S ) ;
         *pX++ = x0 + t*C ;
@@ -138,6 +142,8 @@ mexFunction( int nlhs, mxArray       *plhs[],
       Clothoid::GeneralizedFresnelCS( dk*(L*L), k*L, theta0, C, S ) ;
       *pX++ = x0 + L*C ;
       *pY++ = y0 + L*S ;
+    } else {
+      mexErrMsgTxt("Output argument must be 1 or 2");
     }
 
   } else {
@@ -145,7 +151,7 @@ mexFunction( int nlhs, mxArray       *plhs[],
     double * L = mxGetPr(arg_L) ;
     int   npts = mxGetN(arg_L)*mxGetM(arg_L) ;
 
-    if ( nlhs < 2 ) {
+    if ( nlhs == 1 ) {
   	  plhs[0] = mxCreateDoubleMatrix(2, npts, mxREAL);
   	  double * pXY = mxGetPr(plhs[0]);
       for ( int i = 0 ; i < npts ; ++i ) {
@@ -154,7 +160,7 @@ mexFunction( int nlhs, mxArray       *plhs[],
         *pXY++ = x0 + t*C ;
         *pXY++ = y0 + t*S ;
       }
-    } else {
+    } else if ( nlhs == 2 ) {
       plhs[0] = mxCreateDoubleMatrix(1, npts, mxREAL);
       plhs[1] = mxCreateDoubleMatrix(1, npts, mxREAL);
       double * pX = mxGetPr(plhs[0]);
@@ -165,6 +171,8 @@ mexFunction( int nlhs, mxArray       *plhs[],
         *pX++ = x0 + t*C ;
         *pY++ = y0 + t*S ;
       }
+    } else {
+      mexErrMsgTxt("Output argument must be 1 or 2");
     }
   }
 }
