@@ -18,6 +18,7 @@
 \*--------------------------------------------------------------------------*/
 
 #include "Clothoid.hh"
+#include "CubicRootsFlocke.hh"
 
 #include <cmath>
 #include <sstream>
@@ -200,7 +201,7 @@ namespace Clothoid {
       // Rational approximation for f
       valueType sumn = 0.0 ;
       valueType sumd = fd[11] ;
-      for ( int k=10 ; k >= 0 ; --k ) {
+      for ( indexType k=10 ; k >= 0 ; --k ) {
         sumn = fn[k] + x*sumn ;
         sumd = fd[k] + x*sumd ;
       }
@@ -209,7 +210,7 @@ namespace Clothoid {
       // Rational approximation for g
       sumn = 0.0 ;
       sumd = gd[11] ;
-      for ( int k=10 ; k >= 0 ; --k ) {
+      for ( indexType k=10 ; k >= 0 ; --k ) {
         sumn = gn[k] + x*sumn ;
         sumd = gd[k] + x*sumd ;
       }
@@ -283,7 +284,7 @@ namespace Clothoid {
   // -------------------------------------------------------------------------
 
   void
-  FresnelCS( int       nk,
+  FresnelCS( indexType nk,
              valueType t,
              valueType C[],
              valueType S[] ) {
@@ -335,7 +336,7 @@ namespace Clothoid {
   // nk max 3
   static
   void
-  evalXYaLarge( int       nk,
+  evalXYaLarge( indexType nk,
                 valueType a,
                 valueType b,
                 valueType X[],
@@ -390,7 +391,7 @@ namespace Clothoid {
   LommelReduced( valueType mu, valueType nu, valueType b ) {
     valueType tmp = 1/((mu+nu+1)*(mu-nu+1)) ;
     valueType res = tmp ;
-    for ( int n = 1 ; n <= 100 ; ++n ) {
+    for ( indexType n = 1 ; n <= 100 ; ++n ) {
       tmp *= (-b/(2*n+mu-nu+1)) * (b/(2*n+mu+nu+1)) ;
       res += tmp ;
       if ( std::abs(tmp) < std::abs(res) * 1e-50 ) break ;
@@ -403,7 +404,7 @@ namespace Clothoid {
 
   static
   void
-  evalXYazero( int       nk,
+  evalXYazero( indexType nk,
                valueType b,
                valueType X[],
                valueType Y[] ) {
@@ -419,10 +420,10 @@ namespace Clothoid {
       Y[0] = (1-cb)/b ;
     }
     // use recurrence in the stable part
-    int m = floor(2*b) ;
+    indexType m = floor(2*b) ;
     if ( m >= nk ) m = nk-1 ;
     if ( m < 1   ) m = 1 ;
-    for ( int k = 1 ; k < m ; ++k ) {
+    for ( indexType k = 1 ; k < m ; ++k ) {
       X[k] = (sb-k*Y[k-1])/b ;
       Y[k] = (k*X[k-1]-cb)/b ;
     }
@@ -434,7 +435,7 @@ namespace Clothoid {
       valueType C   = -b2*sb ;
       valueType rLa = LommelReduced(m+0.5,1.5,b) ;
       valueType rLd = LommelReduced(m+0.5,0.5,b) ;
-      for ( int k = m ; k < nk ; ++k ) {
+      for ( indexType k = m ; k < nk ; ++k ) {
         valueType rLb = LommelReduced(k+1.5,0.5,b) ;
         valueType rLc = LommelReduced(k+1.5,1.5,b) ;
         X[k] = ( k*A*rLa + B*rLb + cb ) / (1+k) ;
@@ -452,7 +453,7 @@ namespace Clothoid {
   void
   evalXYaSmall( valueType   a,
                 valueType   b,
-                int         p,
+                indexType   p,
                 valueType & X,
                 valueType & Y ) {
 
@@ -461,7 +462,7 @@ namespace Clothoid {
 
     valueType X0[43], Y0[43] ;
 
-    int nkk = 4*p + 3 ; // max 43
+    indexType nkk = 4*p + 3 ; // max 43
     evalXYazero( nkk, b, X0, Y0 ) ;
 
     X = X0[0]-(a/2)*Y0[2] ;
@@ -469,10 +470,10 @@ namespace Clothoid {
 
     valueType t  = 1 ;
     valueType aa = -a*a/4 ; // controllare!
-    for ( int n=1 ; n <= p ; ++n ) {
+    for ( indexType n=1 ; n <= p ; ++n ) {
       t *= aa/(2*n*(2*n-1)) ;
       valueType bf = a/(4*n+2) ;
-      int jj = 4*n ;
+      indexType jj = 4*n ;
       X += t*(X0[jj]-bf*Y0[jj+2]) ;
       Y += t*(Y0[jj]+bf*X0[jj+2]) ;
     }
@@ -482,14 +483,14 @@ namespace Clothoid {
 
   static
   void
-  evalXYaSmall( int       nk,
+  evalXYaSmall( indexType nk,
                 valueType a,
                 valueType b,
-                int       p,
+                indexType p,
                 valueType X[],
                 valueType Y[] ) {
 
-    int nkk = nk + 4*p + 2 ; // max 45
+    indexType nkk = nk + 4*p + 2 ; // max 45
     valueType X0[45], Y0[45] ;
 
     CLOTHOID_ASSERT( nkk < 46,
@@ -498,18 +499,18 @@ namespace Clothoid {
 
     evalXYazero( nkk, b, X0, Y0 ) ;
 
-    for ( int j=0 ; j < nk ; ++j ) {
+    for ( indexType j=0 ; j < nk ; ++j ) {
       X[j] = X0[j]-(a/2)*Y0[j+2] ;
       Y[j] = Y0[j]+(a/2)*X0[j+2] ;
     }
 
     valueType t  = 1 ;
     valueType aa = -a*a/4 ; // controllare!
-    for ( int n=1 ; n <= p ; ++n ) {
+    for ( indexType n=1 ; n <= p ; ++n ) {
       t *= aa/(2*n*(2*n-1)) ;
       valueType bf = a/(4*n+2) ;
-      for ( int j = 0 ; j < nk ; ++j ) {
-        int jj = 4*n+j ;
+      for ( indexType j = 0 ; j < nk ; ++j ) {
+        indexType jj = 4*n+j ;
         X[j] += t*(X0[jj]-bf*Y0[jj+2]) ;
         Y[j] += t*(Y0[jj]+bf*X0[jj+2]) ;
       }
@@ -543,7 +544,7 @@ namespace Clothoid {
   // -------------------------------------------------------------------------
   
   void
-  GeneralizedFresnelCS( int       nk,
+  GeneralizedFresnelCS( indexType nk,
                         valueType a,
                         valueType b,
                         valueType c,
@@ -558,7 +559,7 @@ namespace Clothoid {
     valueType cosc = cos(c) ;
     valueType sinc = sin(c) ;
 
-    for ( int k = 0 ; k < nk ; ++k ) {
+    for ( indexType k = 0 ; k < nk ; ++k ) {
       valueType xx = intC[k] ;
       valueType yy = intS[k] ;
       intC[k] = xx * cosc - yy * sinc ;
@@ -612,7 +613,7 @@ namespace Clothoid {
 
     // newton
     valueType g=0, dg, intC[3], intS[3] ;
-    int niter = 0 ;
+    indexType niter = 0 ;
     do {
       GeneralizedFresnelCS( 3, 2*A, delta-A, phi0, intC, intS ) ;
       g   = intS[0] ;
@@ -676,7 +677,7 @@ namespace Clothoid {
 
     // newton
     valueType g=0, dg, intC[3], intS[3] ;
-    int niter = 0 ;
+    indexType niter = 0 ;
     do {
       GeneralizedFresnelCS( 3, 2*A, delta-A, phi0, intC, intS ) ;
       g   = intS[0] ;
@@ -699,7 +700,7 @@ namespace Clothoid {
     valueType ty    = intS[1]-intS[2] ;
     valueType txy   = L*(intC[1]*intS[2]-intC[2]*intS[1]) ;
     valueType omega = L*(intS[0]*tx-intC[0]*ty) - txy ;
-    
+
     delta = intC[0]*tx + intS[0]*ty ;
 
     L_1  = omega/delta ;
@@ -712,8 +713,425 @@ namespace Clothoid {
     delta *= L/2 ;
     dk_1 = (gamma-alpha-dk*omega*L)/delta ;
     dk_2 = (alpha-dk*txy*L)/delta ;
-    
+
     return niter ;
+  }
+
+  // ---------------------------------------------------------------------------
+
+  void
+  ClothoidCurve::eval( valueType   s,
+                       valueType & theta,
+                       valueType & kappa,
+                       valueType & x,
+                       valueType & y ) const {
+    valueType C, S ;
+    GeneralizedFresnelCS( dk*s*s, k*s, theta0, C, S ) ;
+    x = x0 + s*C ;
+    y = y0 + s*S ;
+    theta = theta0 + s*(k+s*(dk/2)) ;
+    kappa = k + s*dk ;
+  }
+
+  void
+  ClothoidCurve::eval( valueType s, valueType & x, valueType & y ) const {
+    valueType C, S ;
+    GeneralizedFresnelCS( dk*s*s, k*s, theta0, C, S ) ;
+    x = x0 + s*C ;
+    y = y0 + s*S ;
+  }
+
+  void
+  ClothoidCurve::eval_D( valueType s, valueType & x_D, valueType & y_D ) const {
+    valueType theta = theta0 + s*(k+s*(dk/2)) ;
+    x_D = cos(theta) ;
+    y_D = sin(theta) ;
+  }
+
+  void
+  ClothoidCurve::eval_DD( valueType s, valueType & x_DD, valueType & y_DD ) const {
+    valueType theta   = theta0 + s*(k+s*(dk/2)) ;
+    valueType theta_D = k+s*dk ;
+    x_DD = -sin(theta)*theta_D ;
+    y_DD =  cos(theta)*theta_D  ;
+  }
+
+  void
+  ClothoidCurve::eval_DDD( valueType s, valueType & x_DDD, valueType & y_DDD ) const {
+    valueType theta   = theta0 + s*(k+s*(dk/2)) ;
+    valueType theta_D = k+s*dk ;
+    valueType C       = cos(theta) ;
+    valueType S       = sin(theta) ;
+    valueType th2     = theta_D*theta_D ;
+    x_DDD = -C*th2-S*dk ;
+    y_DDD = -S*th2+C*dk  ;
+  }
+
+  // offset curve
+  void
+  ClothoidCurve::eval( valueType s, valueType offs, valueType & x, valueType & y ) const {
+    valueType C, S ;
+    GeneralizedFresnelCS( dk*s*s, k*s, theta0, C, S ) ;
+    valueType theta = theta0 + s*(k+s*(dk/2)) ;
+    valueType nx    = -sin(theta) ;
+    valueType ny    =  cos(theta) ;
+    x = x0 + s*C + offs * nx ;
+    y = y0 + s*S + offs * ny ;
+  }
+
+  void
+  ClothoidCurve::eval_D( valueType s, valueType offs, valueType & x_D, valueType & y_D ) const {
+    valueType theta   = theta0 + s*(k+s*(dk/2)) ;
+    valueType theta_D = k+s*dk ;
+    valueType scale   = 1-offs*theta_D ;
+    x_D = cos(theta)*scale ;
+    y_D = sin(theta)*scale ;
+  }
+
+  void
+  ClothoidCurve::eval_DD( valueType s, valueType offs, valueType & x_DD, valueType & y_DD ) const {
+    valueType theta   = theta0 + s*(k+s*(dk/2)) ;
+    valueType theta_D = k+s*dk ;
+    valueType C       = cos(theta) ;
+    valueType S       = sin(theta) ;
+    valueType tmp1    = theta_D*(1-theta_D*offs) ;
+    valueType tmp2    = offs*dk ;
+    x_DD = -tmp1*S - C*tmp2 ;
+    y_DD =  tmp1*C - S*tmp2 ;
+  }
+
+  void
+  ClothoidCurve::eval_DDD( valueType s, valueType offs, valueType & x_DDD, valueType & y_DDD ) const {
+    valueType theta   = theta0 + s*(k+s*(dk/2)) ;
+    valueType theta_D = k+s*dk ;
+    valueType C       = cos(theta) ;
+    valueType S       = sin(theta) ;
+    valueType tmp1    = theta_D*theta_D*(theta_D*offs-1) ;
+    valueType tmp2    = dk*(1-3*theta_D*offs) ;
+    x_DDD = tmp1*C-tmp2*S ;
+    y_DDD = tmp1*S+tmp2*C ;
+  }
+
+  static
+  valueType
+  kappa( valueType theta0, valueType theta ) {
+    valueType x = theta0*theta0 ;
+    valueType a = -3.714 + x * 0.178 ;
+    valueType b = -1.913 - x * 0.0753 ;
+    valueType c =  0.999 + x * 0.03475 ;
+    valueType d =  0.191 - x * 0.00703 ;
+    valueType e =  0.500 - x * -0.00172 ;
+    valueType t = d*theta0+e*theta ;
+    return a*theta0+b*theta+c*(t*t*t) ;
+  }
+
+  static
+  valueType
+  theta_guess( valueType theta0, valueType k0, bool & ok ) {
+    valueType x   = theta0*theta0 ;
+    valueType a   = -3.714 + x * 0.178 ;
+    valueType b   = -1.913 - x * 0.0753 ;
+    valueType c   =  0.999 + x * 0.03475 ;
+    valueType d   =  0.191 - x * 0.00703 ;
+    valueType e   =  0.500 - x * -0.00172 ;
+    valueType e2  = e*e ;
+    valueType dt  = d*theta0 ;
+    valueType dt2 = dt*dt ;
+    valueType A   = c*e*e2 ;
+    valueType B   = 3*(c*d*e2*theta0) ;
+    valueType C   = 3*c*e*dt2 + b ;
+    valueType D   = c*(dt*dt2) + a*theta0 - k0 ;
+
+    valueType r[3] ;
+    indexType nr, nc ;
+    PolynomialRoots::solveCubic( A, B, C, D, r[0], r[1], r[2], nr, nc ) ;
+    // cerco radice reale piu vicina
+    valueType theta ;
+    switch ( nr ) {
+    case 0:
+      ok = false ;
+      return 0 ;
+    case 1:
+      theta = r[0] ;
+      break ;
+    case 2:
+      if ( abs(r[0]-theta0) < abs(r[1]-theta0) ) theta = r[0] ;
+      else                                       theta = r[1] ;
+      break ;
+    case 3:
+      theta = r[0] ;
+      for ( indexType i = 1 ; i < 3 ; ++i ) {
+        if ( abs(theta-theta0) > abs(r[i]-theta0) )
+          theta = r[i] ;
+      }
+      break ;
+    }
+    ok = abs(theta-theta0) < m_pi ;
+    return theta ;
+  }
+
+  bool
+  ClothoidCurve::setup_forward( valueType _x0,
+                                valueType _y0,
+                                valueType _theta0,
+                                valueType _k,
+                                valueType _x1,
+                                valueType _y1,
+                                valueType tol ) {
+
+    x0     = _x0 ;
+    y0     = _y0 ;
+    theta0 = _theta0 ;
+    k      = _k ;
+    s_min  = 0 ;
+
+    // Compute guess angles
+    valueType len  = hypot( _y1-_y0, _x1-_x0 ) ;
+    valueType arot = atan2( _y1-_y0, _x1-_x0 ) ;
+    valueType th0  = theta0 - arot ;
+    // normalize angle
+    while ( th0 >  m_pi ) th0 -= m_2pi ;
+    while ( th0 < -m_pi ) th0 += m_2pi ;
+
+    // solve the problem from (0,0) to (1,0)
+    valueType k0    = k*len ;
+    valueType alpha = 2.6 ;
+    valueType thmin = max(-m_pi,-theta0/2-alpha) ;
+    valueType thmax = min( m_pi,-theta0/2+alpha) ;
+    valueType Kmin  = kappa( th0, thmax ) ;
+    valueType Kmax  = kappa( th0, thmin ) ;
+    bool ok ;
+    valueType th = theta_guess( th0, max(min(k0,Kmax),Kmin), ok ) ;
+    if ( ok ) {
+      for ( indexType iter = 0 ; iter < 10 ; ++iter ) {
+        valueType dk, L, k_1, dk_1, L_1, k_2, dk_2, L_2 ;
+        buildClothoid( 0, 0, th0,
+                       1, 0, th,
+                       k, dk, L, k_1, dk_1, L_1, k_2, dk_2, L_2 ) ;
+        valueType f   = k - k0 ;
+        valueType df  = k_2 ;
+        valueType dth = f/df ;
+        th -= dth ;
+        if ( abs(dth) < tol && abs(f) < tol ) {
+          // transform solution
+          buildClothoid( x0, y0, theta0,
+                         _x1, _y1, arot + th,
+                         _k, dk, s_max ) ;
+          return true ;
+        }
+      }
+    }
+    return false ;
+  }
+
+  void
+  ClothoidCurve::change_origin( valueType s0 ) {
+    valueType new_theta, new_kappa, new_x0, new_y0 ;
+    eval( s0, new_theta, new_kappa, new_x0, new_y0 ) ;
+    x0     = new_x0 ;
+    y0     = new_y0 ;
+    theta0 = new_theta ;
+    k      = new_kappa ;
+    s_min -= s0 ;
+    s_max -= s0 ;
+  }
+
+  bool
+  ClothoidCurve::bbTriangle( valueType offs,
+                             valueType p0[2],
+                             valueType p1[2],
+                             valueType p2[2] ) const {
+    valueType theta_max = theta( s_max ) ;
+    valueType theta_min = theta( s_min ) ;
+    valueType dtheta    = std::abs( theta_max-theta_min ) ;
+    if ( dtheta < m_pi_2 ) {
+      valueType alpha, t0[2] ;
+      eval( s_min, offs, p0[0], p0[1] ) ;
+      eval_D( s_min, t0[0], t0[1] ) ; // no offset
+      if ( dtheta > 0.0001 * m_pi_2 ) {
+        valueType t1[2] ;
+        eval( s_max, offs, p1[0], p1[1] ) ;
+        eval_D( s_max, t1[0], t1[1] ) ; // no offset
+        // risolvo il sistema
+        // p0 + alpha * t0 = p1 + beta * t1
+        // alpha * t0 - beta * t1 = p1 - p0
+        valueType det = t1[0]*t0[1]-t0[0]*t1[1] ;
+        alpha = ((p1[1]-p0[1])*t1[0] - (p1[0]-p0[0])*t1[1])/det ;
+      } else {
+        // se angolo troppo piccolo uso approx piu rozza
+        alpha = s_max - s_min ;
+      }
+      p2[0] = p0[0] + alpha*t0[0] ;
+      p2[1] = p0[1] + alpha*t0[1] ;
+      return true ;
+    } else {
+      return false ;
+    }
+  }
+
+  void
+  ClothoidCurve::bbSplit( valueType               split_angle,
+                          valueType               split_size,
+                          valueType               split_offs,
+                          vector<ClothoidCurve> & c,
+                          vector<Triangle2D>    & t ) const {
+
+    // step 0: controllo se curvatura passa per 0
+    valueType k_min = theta_D( s_min ) ;
+    valueType k_max = theta_D( s_max ) ;
+    c.clear() ;
+    t.clear() ;
+    if ( k_min * k_max < 0 ) {
+      // risolvo (s-s_min)*dk+k_min = 0 --> s = s_min-k_min/dk
+      valueType s_med = s_min-k_min/dk ;
+      ClothoidCurve tmp(*this) ;
+      tmp.trim(s_min,s_med) ;
+      tmp.bbSplit_internal( split_angle, split_size, split_offs, c, t ) ;
+      tmp.trim(s_med,s_max) ;
+      tmp.bbSplit_internal( split_angle, split_size, split_offs, c, t ) ;
+    } else {
+      bbSplit_internal( split_angle, split_size, split_offs, c, t ) ;
+    }
+  }
+
+  static
+  valueType
+  abs2pi( valueType a ) {
+    a = std::abs(a) ;
+    while ( a > m_pi ) a -= m_2pi ;
+    return std::abs(a) ;
+  }
+
+  void
+  ClothoidCurve::bbSplit_internal( valueType               split_angle,
+                                   valueType               split_size,
+                                   valueType               split_offs,
+                                   vector<ClothoidCurve> & c,
+                                   vector<Triangle2D>    & t ) const {
+
+    valueType theta_min, kappa_min, x_min, y_min,
+              theta_max, kappa_max, x_max, y_max ;
+
+    eval( s_min, theta_min, kappa_min, x_min, y_min ) ;
+    eval( s_max, theta_max, kappa_max, x_max, y_max ) ;
+
+    valueType dtheta = std::abs( theta_max - theta_min ) ;
+    valueType dx     = x_max - x_min ;
+    valueType dy     = y_max - y_min ;
+    valueType len    = hypot( dy, dx ) ;
+    valueType dangle = abs2pi(atan2( dy, dx )-theta_min) ;
+    if ( dtheta <= split_angle && len*tan(dangle) <= split_size ) {
+      Triangle2D tt ;
+      this->bbTriangle(split_offs,tt) ;
+      c.push_back(*this) ;
+      t.push_back(tt) ;
+    } else {
+      ClothoidCurve cc(*this) ;
+      valueType s_med = (s_min+s_max)/2 ;
+      cc.trim(s_min,s_med) ;
+      cc.bbSplit_internal( split_angle, split_size, split_offs, c, t ) ;
+      cc.trim(s_med,s_max) ;
+      cc.bbSplit_internal( split_angle, split_size, split_offs, c, t ) ;
+    }
+  }
+
+  bool
+  ClothoidCurve::intersect_internal( ClothoidCurve & c1,
+                                     valueType       c1_offs,
+                                     valueType     & s1,
+                                     ClothoidCurve & c2,
+                                     valueType       c2_offs,
+                                     valueType     & s2,
+                                     indexType       max_iter,
+                                     valueType       tolerance ) const {
+    valueType angle1a = c1.theta(c1.s_min) ;
+    valueType angle1b = c1.theta(c1.s_max) ;
+    valueType angle2a = c2.theta(c2.s_min) ;
+    valueType angle2b = c2.theta(c2.s_max) ;
+    // cerca angoli migliori per partire
+    valueType dmax = abs2pi(angle1a-angle2a) ;
+    valueType dab  = abs2pi(angle1a-angle2b) ;
+    valueType dba  = abs2pi(angle1b-angle2a) ;
+    valueType dbb  = abs2pi(angle1b-angle2b) ;
+    s1 = c1.s_min ; s2 = c2.s_min ;
+    if ( dmax < dab ) { dmax = dab ; s2 = c2.s_max ; }
+    if ( dmax < dba ) { dmax = dba ; s1 = c1.s_min ; s2 = c2.s_min ; }
+    if ( dmax < dbb ) {              s1 = c1.s_min ; s2 = c2.s_max ; }
+    for ( indexType i = 0 ; i < max_iter ; ++i ) {
+      valueType t1[2], t2[2], p1[2], p2[2] ;
+      c1.eval( s1, c1_offs, p1[0], p1[1] ) ;
+      c1.eval_D( s1, c1_offs, t1[0], t1[1] ) ;
+      c2.eval( s2, c2_offs, p2[0], p2[1] ) ;
+      c2.eval_D( s2, c2_offs, t2[0], t2[1] ) ;
+      /*
+      // risolvo il sistema
+      // p1 + alpha * t1 = p2 + beta * t2
+      // alpha * t1 - beta * t2 = p2 - p1
+      //
+      //  / t1[0] -t2[0] \ / alpha \ = / p2[0] - p1[0] \
+      //  \ t1[1] -t2[1] / \ beta  /   \ p2[1] - p1[1] /
+      */
+      valueType det = t2[0]*t1[1]-t1[0]*t2[1] ;
+      valueType px  = p2[0]-p1[0] ;
+      valueType py  = p2[1]-p1[1] ;
+      s1 += (py*t2[0] - px*t2[1])/det ;
+      s2 += (t1[0]*py - t1[1]*px)/det ;
+      if ( s1 <= c1.s_min || s1 >= c1.s_max ||
+           s2 <= c2.s_min || s2 >= c2.s_max ) break ;
+      if ( std::abs(px) <= tolerance ||
+           std::abs(py) <= tolerance ) return true ;
+    }
+    return false ;
+  }
+
+  void
+  ClothoidCurve::intersect( valueType             offs,
+                            ClothoidCurve const & clot,
+                            valueType             clot_offs,
+                            vector<valueType>   & s1,
+                            vector<valueType>   & s2,
+                            indexType             max_iter,
+                            valueType             tolerance ) const {
+    vector<ClothoidCurve> c0, c1 ;
+    vector<Triangle2D>    t0, t1 ;
+    bbSplit( m_pi/50, (s_max-s_min)/3, offs, c0, t0 ) ;
+    clot.bbSplit( m_pi/50, (clot.s_max-clot.s_min)/3, clot_offs, c1, t1 ) ;
+    s1.clear() ;
+    s2.clear() ;
+    for ( indexType i = 0 ; i < c0.size() ; ++i ) {
+      for ( indexType j = 0 ; j < c1.size() ; ++j ) {
+        if ( t0[i].overlap(t1[j]) ) {
+          // uso newton per cercare intersezione
+          valueType tmp_s1, tmp_s2 ;
+          bool ok = intersect_internal( c0[i], offs,      tmp_s1,
+                                        c1[j], clot_offs, tmp_s2,
+                                        max_iter, tolerance ) ;
+          if ( ok ) {
+            s1.push_back(tmp_s1) ;
+            s2.push_back(tmp_s2) ;
+          }
+        }
+      }
+    }
+  }
+  
+  // collision detection
+  bool
+  ClothoidCurve::approsimate_collision( valueType             offs,
+                                        ClothoidCurve const & clot,
+                                        valueType             clot_offs,
+                                        valueType             max_angle,
+                                        valueType             max_size ) const {
+    vector<ClothoidCurve> c0, c1 ;
+    vector<Triangle2D>    t0, t1 ;
+    bbSplit( max_angle, max_size, offs, c0, t0 ) ;
+    clot.bbSplit( max_angle, max_size, clot_offs, c1, t1 ) ;
+    for ( indexType i = 0 ; i < c0.size() ; ++i ) {
+      for ( indexType j = 0 ; j < c1.size() ; ++j ) {
+        if ( t0[i].overlap(t1[j]) ) return true ;
+      }
+    }
+    return false ;
   }
 
 }

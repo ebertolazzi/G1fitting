@@ -22,7 +22,8 @@
 "%=============================================================================%\n" \
 "%  buildClothoid:  Compute parameters of the G1 Hermite clothoid fitting      %\n" \
 "%                                                                             %\n" \
-"%  USAGE: [k,dk,L,iter,k_1,dk_1,L_1,k_2,dk_2,L_2] = ...                       %\n" \
+"%  USAGE: [k,dk,L,iter] = buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ;   %\n" \
+"%         [k,dk,L,iter,k_1,dk_1,L_1,k_2,dk_2,L_2] = ...                       %\n" \
 "%                         buildClothoid( x0, y0, theta0, x1, y1, theta1 ) ;   %\n" \
 "%                                                                             %\n" \
 "%  On input:                                                                  %\n" \
@@ -40,7 +41,7 @@
 "%            notice that curvature at final point is k+dk*L                   %\n" \
 "%       iter = Newton Iterations used to solve the interpolation problem      %\n" \
 "%                                                                             %\n" \
-"%       optional output                                                       %\n" \
+"%  optional output                                                            %\n" \
 "%                                                                             %\n" \
 "%       k_1  = partial derivative of the solution respect to theta0           %\n" \
 "%       dk_1 = partial derivative of the solution respect to theta0           %\n" \

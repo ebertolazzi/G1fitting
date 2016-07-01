@@ -12,7 +12,7 @@ addpath('../G1fitting');
 addpath('../meekAndWalton');
 close all ;
 
-%tol     = 1E-14 ;
+tol     = 1E-14 ;
 maxiter = 1000 ;
 
 % test 1

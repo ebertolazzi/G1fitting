@@ -13,7 +13,7 @@ addpath('../meekAndWalton');
 
 close all ;
 
-%tol     = 1E-12 ;
+tol     = 1E-12 ;
 maxIter = 100 ;
 npts    = 400 ;
 
@@ -34,7 +34,7 @@ for kk=1:10
   a2 = -0.02/2^kk ;
 
   [P0,T0,N0,a,t1,t2,iter,failFlag,reflectFlag,reverseFlag,kind] = ...
-    completeShape( P1, [cos(a1);sin(a1)], P2, [cos(a2);sin(a2)], tol, maxiter ) ;
+    completeShape( P1, [cos(a1);sin(a1)], P2, [cos(a2);sin(a2)], tol, maxIter ) ;
 
   XY = pointsOnShape( P0, T0, N0, a, t1, t2, npts ) ;
   

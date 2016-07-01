@@ -13,7 +13,7 @@ addpath('../meekAndWalton');
 
 close all ;
 
-%tol     = 1E-14 ;
+tol     = 1E-14 ;
 npts    = 400 ;
 maxiter = 100 ;
 
