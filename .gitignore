@@ -9,3 +9,10 @@
 
 submission/
 
+bin
+cmake
+DerivedData
+*.mexmaci64
+lib
+*.
+test.xcodeproj

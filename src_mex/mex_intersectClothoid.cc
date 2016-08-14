@@ -133,11 +133,17 @@ mexFunction( int nlhs, mxArray       *plhs[],
       return ;
     }
   }
-  
+
   std::vector<Clothoid::valueType> s1, s2 ;
   Clothoid::indexType max_iter  = 10 ;
   Clothoid::valueType tolerance = 1e-8 ;
-  bool ok = cc[0].intersect( cc[1], s1, s2, max_iter, tolerance ) ;
+ 
+  try {
+    cc[0].intersect( cc[1], s1, s2, max_iter, tolerance ) ;
+  }
+  catch (...) {
+  	mexErrMsgTxt("Intersection failed\n") ;      
+  }
 
   if ( nlhs > 0 ) {
     arg_S1 = mxCreateNumericMatrix(s1.size(),1, mxDOUBLE_CLASS, mxREAL);

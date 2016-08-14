@@ -849,6 +849,7 @@ namespace Clothoid {
     valueType theta ;
     switch ( nr ) {
     case 0:
+    default:
       ok = false ;
       return 0 ;
     case 1:

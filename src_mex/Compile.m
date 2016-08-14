@@ -9,7 +9,7 @@ NAMES = { 'FresnelCS', ...
           'TriTriOverlap', ...
           'intersectClothoid' } ;
 
-LIBS = '-I../srcs_lib ../srcs_lib/Clothoid.cc ../srcs_lib/Triangle2D.cc ../srcs_lib/CubicRootsFlocke.cc' ;
+LIBS = '-I../src ../src/Clothoid.cc ../src/Triangle2D.cc ../src/CubicRootsFlocke.cc' ;
 
 disp('---------------------------------------------------------');
 for k=1:length(NAMES)
