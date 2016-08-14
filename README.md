@@ -1,3 +1,5 @@
+G1fitting [![Build Status](https://travis-ci.org/ebertolazzi/G1fitting.svg?branch=master)](https://travis-ci.org/ebertolazzi/G1fitting)
+
 ### G1 fitting with clothoids
 **by Enrico Bertolazzi and Marco Frego**
 
@@ -58,7 +60,7 @@ Four sample scripts: TestN0, TestN1, TestN2 and TestN3 shows how to use the func
 
 **Mex files for fast computation:**
 
-In directory `mex_srcs` you find a C++ implementation of the proposed algorithm 
+In directory `src_mex` you find a C++ implementation of the proposed algorithm 
 with `mex` interface. To compile run `Compile` from MATLAB window.
 After compilation the compiled version of the scripts
 
@@ -68,7 +70,16 @@ After compilation the compiled version of the scripts
 - GeneralizedFresnelCS
 - pointsOnClothoid
 
-are available in the `G1fitting` directoty.
+are available in the `G1fitting` directory.
+
+**Additional mex**
+
+The mex implementation of the script:
+
+- intersectClothoid
+- TriTriOverlap
+
+are added to the library. The first compute all the intersections between two clothoids. The second check if two triangles (planar) overlap (used in the intersection computation).
 
 **Authors:**
 	
