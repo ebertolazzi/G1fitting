@@ -41,7 +41,7 @@ PREFIX    = /usr/local
 FRAMEWORK = Clothoid
 
 all: lib
-	$(MKDIR) bin
+	@$(MKDIR) bin
 	$(CXX) $(INC) $(CXXFLAGS) -o bin/test1 src_tests/test1.cc $(LIBS)
 	$(CXX) $(INC) $(CXXFLAGS) -o bin/test2 src_tests/test2.cc $(LIBS)
 
@@ -54,30 +54,30 @@ src/%.o: src/%.c $(DEPS)
 	$(CC) $(INC) $(CFLAGS) $(DEFS) -c -o $@ $<
 
 lib/libClothoid.a: $(OBJS)
-	$(MKDIR) lib
+	@$(MKDIR) lib
 	$(AR) lib/libClothoid.a $(OBJS) 
 
 lib/libClothoid.dylib: $(OBJS)
-	$(MKDIR) lib
+	@$(MKDIR) lib
 	$(CXX) -shared -o lib/libClothoid.dylib $(OBJS) 
 
 lib/libClothoid.so: $(OBJS)
-	$(MKDIR) lib
+	@$(MKDIR) lib
 	$(CXX) -shared -o lib/libClothoid.so $(OBJS) 
 
 install: lib
-	$(MKDIR) $(PREFIX)/lib
-	$(MKDIR) $(PREFIX)/include
-	cp src/Splines.hh          $(PREFIX)/include
-	cp src/SplinesCinterface.h $(PREFIX)/include
-	cp lib/$(LIB_SPLINE)       $(PREFIX)/lib
+	@$(MKDIR) $(PREFIX)/lib
+	@$(MKDIR) $(PREFIX)/include
+	cp src/Clothoid.hh         $(PREFIX)/include
+	cp src/CubicRootsFlocke.hh $(PREFIX)/include
+	cp lib/$(LIB_CLOTHOID)     $(PREFIX)/lib
 
 install_as_framework: lib
-	$(MKDIR) $(PREFIX)/lib
-	$(MKDIR) $(PREFIX)/include/$(FRAMEWORK)
-	cp src/Splines.hh          $(PREFIX)/include/$(FRAMEWORK)
-	cp src/SplinesCinterface.h $(PREFIX)/include/$(FRAMEWORK)
-	cp lib/$(LIB_SPLINE)       $(PREFIX)/lib
+	@$(MKDIR) $(PREFIX)/lib
+	@$(MKDIR) $(PREFIX)/include/$(FRAMEWORK)
+	cp src/Clothoid.hh         $(PREFIX)/include/$(FRAMEWORK)
+	cp src/CubicRootsFlocke.hh $(PREFIX)/include/$(FRAMEWORK)
+	cp lib/$(LIB_CLOTHOID)     $(PREFIX)/lib
 
 run:
 	./bin/test1
