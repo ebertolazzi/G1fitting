@@ -420,7 +420,7 @@ namespace Clothoid {
       Y[0] = (1-cb)/b ;
     }
     // use recurrence in the stable part
-    indexType m = floor(2*b) ;
+    indexType m = indexType(floor(2*b)) ;
     if ( m >= nk ) m = nk-1 ;
     if ( m < 1   ) m = 1 ;
     for ( indexType k = 1 ; k < m ; ++k ) {
@@ -1099,8 +1099,8 @@ namespace Clothoid {
     clot.bbSplit( m_pi/50, (clot.s_max-clot.s_min)/3, clot_offs, c1, t1 ) ;
     s1.clear() ;
     s2.clear() ;
-    for ( indexType i = 0 ; i < c0.size() ; ++i ) {
-      for ( indexType j = 0 ; j < c1.size() ; ++j ) {
+    for ( indexType i = 0 ; i < indexType(c0.size()) ; ++i ) {
+      for ( indexType j = 0 ; j < indexType(c1.size()) ; ++j ) {
         if ( t0[i].overlap(t1[j]) ) {
           // uso newton per cercare intersezione
           valueType tmp_s1, tmp_s2 ;
@@ -1127,8 +1127,8 @@ namespace Clothoid {
     vector<Triangle2D>    t0, t1 ;
     bbSplit( max_angle, max_size, offs, c0, t0 ) ;
     clot.bbSplit( max_angle, max_size, clot_offs, c1, t1 ) ;
-    for ( indexType i = 0 ; i < c0.size() ; ++i ) {
-      for ( indexType j = 0 ; j < c1.size() ; ++j ) {
+    for ( indexType i = 0 ; i < indexType(c0.size()) ; ++i ) {
+      for ( indexType j = 0 ; j < indexType(c1.size()) ; ++j ) {
         if ( t0[i].overlap(t1[j]) ) return true ;
       }
     }
