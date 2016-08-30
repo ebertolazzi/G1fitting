@@ -351,10 +351,10 @@ namespace Clothoid {
     theta_D( valueType s ) const { return k + s*dk ; }
 
     valueType
-    theta_DD( valueType s ) const { return dk ; }
+    theta_DD( valueType ) const { return dk ; }
 
     valueType
-    theta_DDD( valueType s ) const { return 0 ; }
+    theta_DDD( valueType ) const { return 0 ; }
 
     void
     eval( valueType   s,
