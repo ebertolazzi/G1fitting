@@ -287,6 +287,14 @@ namespace Clothoid {
 
     ClothoidCurve const & operator = ( ClothoidCurve const & s )
     { copy(s) ; return *this ; }
+    
+    valueType getX0()      const { return x0 ; }
+    valueType getY0()      const { return y0 ; }
+    valueType getTheta0()  const { return theta0 ; }
+    valueType getKappa()   const { return k ; }
+    valueType getKappa_D() const { return dk ; }
+    valueType getSmin()    const { return s_min ; }
+    valueType getSmax()    const { return s_max ; }
 
     //! construct a clothoid with the standard parameters
     void
@@ -331,7 +339,10 @@ namespace Clothoid {
               valueType _y1,
               valueType _theta1 ) {
       buildClothoid( _x0, _y0, _theta0, _x1, _y1, _theta1, k, dk, s_max ) ;
-      s_min = 0 ;
+      x0     = _x0 ;
+      y0     = _y0 ;
+      theta0 = _theta0 ;
+      s_min  = 0 ;
     }
 
     //! build a clothoid by solving the forward problem
@@ -427,6 +438,27 @@ namespace Clothoid {
                            valueType             c_offs,
                            valueType             max_angle,         //!< maximum angle variation
                            valueType             max_size ) const ; //!< curve offset
+
+    friend
+    std::ostream &
+    operator << ( std::ostream & stream, ClothoidCurve const & c ) ;
+
+    void
+    rotate( valueType angle, valueType cx, valueType cy ) ;
+
+    void
+    translate( valueType tx, valueType ty )
+    { x0 += tx ; y0 += ty ; }
+
+    void
+    moveOrigin( valueType newx0, valueType newy0 )
+    { x0 = newx0 ; y0 = newy0 ; }
+
+    void
+    scale( valueType s ) ;
+
+    void
+    reverse() ;
 
   } ;
 

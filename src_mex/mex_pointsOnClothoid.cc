@@ -107,7 +107,7 @@ mexFunction( int nlhs, mxArray       *plhs[],
     Clothoid::valueType L    = mxGetScalar(arg_L) ;
     int                 npts = int(mxGetScalar(arg_npts)) ;
 
-    ASSERT( L    > 0, "6th arguments (L) must be > 0, found " << L ) ;
+    //ASSERT( L    > 0, "6th arguments (L) must be > 0, found " << L ) ;
     ASSERT( npts > 1, "7th arguments (npts) must be > 1, found " << npts ) ;
 
     Clothoid::valueType dt = L/(npts-1) ;

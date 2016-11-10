@@ -1135,4 +1135,49 @@ namespace Clothoid {
     return false ;
   }
 
+  void
+  ClothoidCurve::rotate( valueType angle, valueType cx, valueType cy ) {
+    valueType dx  = x0 - cx ;
+    valueType dy  = y0 - cy ;
+    valueType C   = cos(angle) ;
+    valueType S   = sin(angle) ;
+    valueType ndx = C*dx - S*dy ;
+    valueType ndy = C*dy + S*dx ;
+    x0      = cx + ndx ;
+    y0      = cy + ndy ;
+    theta0 += angle ;
+  }
+
+  void
+  ClothoidCurve::scale( valueType s ) {
+    k     /= s ;
+    dk    /= s*s ;
+    s_min *= s ;
+    s_max *= s ;
+  }
+
+  void
+  ClothoidCurve::reverse() {
+    theta0 = theta0 + m_pi ;
+    if ( theta0 > m_pi ) theta0 -= 2*m_pi ;
+    k     = -k ;
+    valueType tmp = s_max ;
+    s_max = -s_min ;
+    s_min = -tmp ;
+  }
+
+  std::ostream &
+  operator << ( std::ostream & stream, ClothoidCurve const & c ) {
+    stream <<   "x0     = " << c.x0
+           << "\ny0     = " << c.y0
+           << "\ntheta0 = " << c.theta0
+           << "\nk      = " << c.k
+           << "\ndk     = " << c.dk
+           << "\nL      = " << c.s_max-c.s_min
+           << "\ns_min  = " << c.s_min
+           << "\ns_max  = " << c.s_max
+           << "\n" ;
+    return stream ;
+  }
+
 }
