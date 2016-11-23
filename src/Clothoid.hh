@@ -33,7 +33,14 @@ namespace Clothoid {
 
   typedef double valueType ;
   typedef int    indexType ;
-
+  
+  /*\
+   |   _____                         _
+   |  |  ___| __ ___  ___ _ __   ___| |
+   |  | |_ | '__/ _ \/ __| '_ \ / _ \ |
+   |  |  _|| | |  __/\__ \ | | |  __/ |
+   |  |_|  |_|  \___||___/_| |_|\___|_|
+  \*/
   //! Compute Fresnel integrals
   /*!
    * \f[ C(x) = \int_0^x \cos\left(\frac{\pi}{2}t^2\right) dt, \qquad
@@ -98,7 +105,14 @@ namespace Clothoid {
                         valueType   c,
                         valueType & intC,
                         valueType & intS ) ;
-
+  
+  /*\
+   |    ____ _       _   _           _     _
+   |   / ___| | ___ | |_| |__   ___ (_) __| |
+   |  | |   | |/ _ \| __| '_ \ / _ \| |/ _` |
+   |  | |___| | (_) | |_| | | | (_) | | (_| |
+   |   \____|_|\___/ \__|_| |_|\___/|_|\__,_|
+  \*/
   /*! \brief Compute the clothoid by Hemite data
    *
    * \param x0     initial x position            \f$ x_0      \f$
@@ -145,6 +159,14 @@ namespace Clothoid {
   
   class ClothoidCurve ; // forward declaration
 
+  /*\
+   |   _____     _                   _      ____  ____
+   |  |_   _| __(_) __ _ _ __   __ _| | ___|___ \|  _ \
+   |    | || '__| |/ _` | '_ \ / _` | |/ _ \ __) | | | |
+   |    | || |  | | (_| | | | | (_| | |  __// __/| |_| |
+   |    |_||_|  |_|\__,_|_| |_|\__, |_|\___|_____|____/
+   |                           |___/
+  \*/
   //! \brief Class to manage Triangle for BB of clothoid curve
   class Triangle2D {
 
@@ -189,7 +211,14 @@ namespace Clothoid {
     friend class ClothoidCurve ;
 
   };
-
+  
+  /*\
+   |    ____ _       _   _           _     _  ____
+   |   / ___| | ___ | |_| |__   ___ (_) __| |/ ___|   _ _ ____   _____
+   |  | |   | |/ _ \| __| '_ \ / _ \| |/ _` | |  | | | | '__\ \ / / _ \
+   |  | |___| | (_) | |_| | | | (_) | | (_| | |__| |_| | |   \ V /  __/
+   |   \____|_|\___/ \__|_| |_|\___/|_|\__,_|\____\__,_|_|    \_/ \___|
+  \*/
   //! \brief Class to manage Clothoid Curve
   class ClothoidCurve {
 
@@ -459,6 +488,179 @@ namespace Clothoid {
 
     void
     reverse() ;
+
+  } ;
+  
+  /*\
+   |    ____ ____     _       _
+   |   / ___|___ \ __| | __ _| |_ __ _
+   |  | |  _  __) / _` |/ _` | __/ _` |
+   |  | |_| |/ __/ (_| | (_| | || (_| |
+   |   \____|_____\__,_|\__,_|\__\__,_|
+  \*/
+  class G2data {
+
+  protected:
+
+    valueType tolerance ;
+    int       maxIter ;
+
+    valueType x0 ;
+    valueType y0 ;
+    valueType theta0 ;
+    valueType kappa0 ;
+    valueType x1 ;
+    valueType y1 ;
+    valueType theta1 ;
+    valueType kappa1 ;
+
+    // standard problem
+    valueType phi, Lscale ;
+    valueType th0, th1 ;
+    valueType k0, k1 ;
+    valueType DeltaK ;
+    valueType DeltaTheta ;
+
+  public:
+  
+    G2data()
+    : tolerance(1e-10)
+    , maxIter(20)
+    , x0(0)
+    , y0(0)
+    , theta0(0)
+    , kappa0(0)
+    , x1(0)
+    , y1(0)
+    , theta1(0)
+    , kappa1(0)
+    , phi(0)
+    , Lscale(0)
+    , th0(0)
+    , th1(0)
+    , k0(0)
+    , k1(0)
+    {}
+
+    ~G2data() {}
+
+    void
+    setup( valueType x0, valueType y0, valueType theta0, valueType kappa0,
+           valueType x1, valueType y1, valueType theta1, valueType kappa1 ) ;
+
+    void
+    setTolerance( valueType tol ) ;
+
+    void
+    setMaxIter( int tol ) ;
+
+  } ;
+  
+  /*\
+   |    ____ ____            _           ____
+   |   / ___|___ \ ___  ___ | |_   _____|___ \ __ _ _ __ ___
+   |  | |  _  __) / __|/ _ \| \ \ / / _ \ __) / _` | '__/ __|
+   |  | |_| |/ __/\__ \ (_) | |\ V /  __// __/ (_| | | | (__
+   |   \____|_____|___/\___/|_| \_/ \___|_____\__,_|_|  \___|
+  \*/
+  class G2solve2arc : public G2data {
+
+    ClothoidCurve S0, S1 ;
+
+    void
+    evalA( valueType   alpha,
+           valueType   L,
+           valueType & A,
+           valueType & A_1,
+           valueType & A_2 ) const ;
+
+    void
+    evalG( valueType alpha,
+           valueType L,
+           valueType th,
+           valueType k,
+           valueType G[2],
+           valueType G_1[2],
+           valueType G_2[2] ) const ;
+
+    void
+    evalFJ( valueType const vars[2],
+            valueType       F[2],
+            valueType       J[2][2] ) const ;
+
+    void
+    buildSolution( valueType alpha, valueType L ) ;
+
+  public:
+  
+    using G2data::setup ;
+    using G2data::setTolerance ;
+    using G2data::setMaxIter ;
+
+    G2solve2arc() {}
+    ~G2solve2arc() {}
+
+    bool
+    solve() ;
+
+    ClothoidCurve const & getS0() const { return S0 ; }
+    ClothoidCurve const & getS1() const { return S1 ; }
+
+  } ;
+  
+  /*\
+   |    ____ ____            _           _____
+   |   / ___|___ \ ___  ___ | |_   _____|___ /  __ _ _ __ ___
+   |  | |  _  __) / __|/ _ \| \ \ / / _ \ |_ \ / _` | '__/ __|
+   |  | |_| |/ __/\__ \ (_) | |\ V /  __/___) | (_| | | | (__
+   |   \____|_____|___/\___/|_| \_/ \___|____/ \__,_|_|  \___|
+  \*/
+  class G2solve3arc : public G2data {
+
+    ClothoidCurve S0, SM, S1 ;
+
+    valueType alpha, beta, gamma ;
+    valueType dK0_0, dK0_1, dK0_2 ;
+    valueType dK1_0, dK1_1, dK1_2 ;
+    valueType KM_0,  KM_1,  KM_2  ;
+    valueType thM_0, thM_1, thM_2 ;
+    valueType a0, b1, gamma2 ;
+
+    void
+    evalFJ( valueType const vars[2],
+            valueType       F[2],
+            valueType       J[2][2] ) const ;
+
+    void
+    buildSolution( valueType eta, valueType zeta ) ;
+
+  public:
+    
+    using G2data::setup ;
+    using G2data::setTolerance ;
+    using G2data::setMaxIter ;
+
+    G2solve3arc() {}
+    ~G2solve3arc() {}
+
+    bool
+    solve() ;
+
+    void
+    setup( valueType _x0,
+           valueType _y0,
+           valueType _theta0,
+           valueType _kappa0,
+           valueType _alpha,
+           valueType _x1,
+           valueType _y1,
+           valueType _theta1,
+           valueType _kappa1,
+           valueType _beta ) ;
+
+    ClothoidCurve const & getS0() const { return S0 ; }
+    ClothoidCurve const & getS1() const { return S1 ; }
+    ClothoidCurve const & getSM() const { return SM ; }
 
   } ;
 
